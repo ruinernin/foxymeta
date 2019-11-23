@@ -2,6 +2,7 @@ import functools
 
 #from .router import router
 from . import trakt_api
+from . import tvdb_api
 
 
 #trakt_api.get = functools.partial(trakt_api.get,
@@ -45,4 +46,25 @@ def trakt_episode(imdbid, season, episode):
                                                         int(season),
                                                         int(episode))
     result = trakt_api.get(path, extended='full')
+    return result
+
+
+@tvdb_api.jwt_auth
+def tvdb_show(jwt, tvdb_seriesid):
+    path = 'series/{}/episodes/summary'.format(tvdb_seriesid)
+    result = tvdb_api.get(jwt, path)
+    return result
+
+
+@tvdb_api.jwt_auth
+def tvdb_season(jwt, tvdb_seriesid, season):
+    path = 'series/{}/episodes/query'.format(tvdb_seriesid)
+    result = tvdb_api.get(jwt, path, airedSeason=season)
+    return result
+
+
+@tvdb_api.jwt_auth
+def tvdb_episode(jwt, tvdb_episodeid):
+    path = 'episodes/{}'.format(tvdb_episodeid)
+    result = tvdb_api.get(jwt, path)
     return result
