@@ -21,6 +21,7 @@ TRAKT_TRANSLATION = (('title', 'title'),
                      (('ids', 'imdb'), 'imdbnumber'),
                      ('network', 'studio'),)
 
+
 TVDB_EPISODE_TRANSLATION = (('episodeName', 'title'),
                             ('imdbId', 'imdbnumber'),
                             ('overview', 'plot'),
@@ -60,6 +61,7 @@ def trakt_seasons(imdbid, extended=False):
     else:
         result = trakt_api.get(path)
     return result
+
 
 def trakt_season(imdbid, season, extended=False):
     path = 'shows/{}/seasons/{:d}'.format(imdbid, int(season))
