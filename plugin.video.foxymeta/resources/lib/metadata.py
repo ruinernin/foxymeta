@@ -12,6 +12,29 @@ trakt_api.get = functools.partial(trakt_api.get,
                                   auth_token='')
 
 
+TRAKT_TRANSLATION = (('title', 'title'),
+                     ('year', 'year'),
+                     ('overview', 'plot'),
+                     ('released', 'premiered'),
+                     ('certification', 'mpaa'),
+                     ('genres', 'genres'),
+                     (('ids', 'imdb'), 'imdbnumber'),)
+
+
+def translate_info(translation, data):
+    info_label = {}
+    for data_key, info_label_key in translation:
+        if isinstance(data_key, basestring):
+            value = data.get(data_key)
+        else:
+            value = data
+            for subkey in data_key:
+                value = value.get(subkey, {})
+        if value:
+            info_label[info_label_key] = value
+    return info_label
+
+
 def trakt_movie(imdbid):
     path = 'movies/{}'.format(imdbid)
     result = trakt_api.get(path, extended='full')
