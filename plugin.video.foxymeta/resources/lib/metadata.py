@@ -18,7 +18,13 @@ TRAKT_TRANSLATION = (('title', 'title'),
                      ('released', 'premiered'),
                      ('certification', 'mpaa'),
                      ('genres', 'genres'),
-                     (('ids', 'imdb'), 'imdbnumber'),)
+                     (('ids', 'imdb'), 'imdbnumber'),
+                     ('network', 'studio'),)
+
+TVDB_EPISODE_TRANSLATION = (('episodeName', 'title'),
+                            ('imdbId', 'imdbnumber'),
+                            ('overview', 'plot'),
+                            ('firstAired', 'aired'),)
 
 
 def translate_info(translation, data):
