@@ -31,6 +31,10 @@ TVDB_EPISODE_TRANSLATION = (('episodeName', 'title'),
 def translate_info(translation, data):
     info_label = {}
     for data_key, info_label_key in translation:
+        try:
+            basestring
+        except NameError:
+            basestring = str
         if isinstance(data_key, basestring):
             value = data.get(data_key)
         else:
@@ -46,6 +50,14 @@ def trakt_movie(imdbid):
     path = 'movies/{}'.format(imdbid)
     result = trakt_api.get(path, extended='full')
     return result
+
+
+def trakt_movies_popular():
+    path = 'movies/popular'
+    for page in range(1, 10):
+        result = trakt_api.get(path, extended='full', page=page)
+        for item in result:
+            yield item
 
 
 def trakt_show(imdbid):
@@ -82,15 +94,24 @@ def trakt_episode(imdbid, season, episode):
 
 @tvdb_api.jwt_auth
 def tvdb_show(jwt, tvdb_seriesid):
+    path = 'series/{}'.format(tvdb_seriesid)
+    result = tvdb_api.get(jwt, path)['data']
     path = 'series/{}/episodes/summary'.format(tvdb_seriesid)
-    result = tvdb_api.get(jwt, path)
+    result.update(tvdb_api.get(jwt, path)['data'])
+    return result
+
+
+@tvdb_api.jwt_auth
+def tvdb_show_images(jwt, tvdb_seriesid, keyType='fanart'):
+    path = 'series/{}/images/query'.format(tvdb_seriesid)
+    result = tvdb_api.get(jwt, path, keyType=keyType)
     return result
 
 
 @tvdb_api.jwt_auth
 def tvdb_season(jwt, tvdb_seriesid, season):
     path = 'series/{}/episodes/query'.format(tvdb_seriesid)
-    result = tvdb_api.get(jwt, path, airedSeason=season)
+    result = tvdb_api.get(jwt, path, airedSeason=season)['data']
     return result
 
 
