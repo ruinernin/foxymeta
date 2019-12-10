@@ -4,6 +4,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
+from resources.lib import artwork
 from resources.lib import metadata
 from resources.lib import trakt_api
 from resources.lib.router import router
@@ -13,7 +14,11 @@ from resources.lib.router import router
 def popular(page=1):
     for movie in metadata.trakt_movies_popular(page=page):
         info = metadata.translate_info(metadata.TRAKT_TRANSLATION, movie)
+        info['mediatype'] = 'movie'
         li = xbmcgui.ListItem(info['title'])
+        li.setArt({
+            'poster': artwork.tmdb_poster(movie['ids']['tmdb']),
+        })
         li.setInfo('video', info)
         xbmcplugin.addDirectoryItem(router.handle, '', li, False)
     xbmcplugin.addDirectoryItem(router.handle,
