@@ -30,7 +30,7 @@ class Router(object):
         except os.error as e:
             pass
         # store cache on (funname, hash(args + sorted_kwargs))
-        self.cache = {}
+        self._cache = {}
         self.cache_keys_updated = set()
 
     @staticmethod
@@ -44,7 +44,7 @@ class Router(object):
         if os.path.isfile(cache_path):
             with open(cache_path, 'r') as cache_file:
                 try:
-                    self.cache[name] = json.load(cache_file)
+                    self._cache[name] = json.load(cache_file)
                 except:
                     return None
                 else:
@@ -53,19 +53,29 @@ class Router(object):
     def write_cache(self, name):
         cache_path = '{}/{}.json'.format(self.cache_dir, name)
         with open(cache_path, 'w') as cache_file:
-            json.dump(self.cache[name], cache_file)
+            json.dump(self._cache[name], cache_file)
 
     def cache_get(self, name, *args, **kwargs):
-        if name not in self.cache:
+        if name not in self._cache:
             if not self.load_cache(name):
                 return None
         _hash = self.cache_hash(*args, **kwargs)
-        return self.cache[name].get(_hash)
+        return self._cache[name].get(_hash)
 
     def cache_set(self, name, val, *args, **kwargs):
         _hash = self.cache_hash(*args, **kwargs)
-        self.cache.setdefault(name, dict())[_hash] = val
+        self._cache.setdefault(name, dict())[_hash] = val
         self.cache_keys_updated.add(name)
+
+    def cache(self, func):
+        def wrapper(*args, **kwargs):
+            cached = self.cache_get(func.__name__, *args, **kwargs)
+            if cached is None:
+                result = func(*args, **kwargs)
+                self.cache_set(func.__name__, result, *args, **kwargs)
+                return result
+            return cached
+        return wrapper
 
     def route(self, path):
         path = path.lstrip('/')
