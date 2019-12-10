@@ -26,6 +26,8 @@ def popular(page=1):
                                 router.build_url(popular, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
+    xbmcplugin.setContent(router.handle, 'movies')
+    xbmcplugin.setPluginCategory(router.handle, 'Popular Movies')
     xbmcplugin.endOfDirectory(router.handle)
 
 
