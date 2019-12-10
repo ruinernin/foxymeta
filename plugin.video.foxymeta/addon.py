@@ -16,6 +16,10 @@ def popular(page=1):
         info = metadata.translate_info(metadata.TRAKT_TRANSLATION, movie)
         info['mediatype'] = 'movie'
         li = xbmcgui.ListItem(info['title'])
+        poster = router.cache_get('tmdb_poster', movie['ids']['tmdb'])
+        if poster is None:
+            poster = artwork.tmdb_poster(movie['ids']['tmdb'])
+            router.cache_set('tmdb_poster', poster, movie['ids']['tmdb'])
         li.setArt({
             'poster': artwork.tmdb_poster(movie['ids']['tmdb']),
         })

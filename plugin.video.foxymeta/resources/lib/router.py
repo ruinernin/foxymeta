@@ -3,8 +3,13 @@ try:
 except ImportError:
     from urllib import urlencode
     from urlparse import urlparse, parse_qsl
+import hashlib
+import json
+import os
+import os.path
 import sys
 
+import xbmc
 import xbmcaddon
 
 
@@ -18,6 +23,49 @@ class Router(object):
         self.addon = xbmcaddon.Addon()
         self.id_ = self.addon.getAddonInfo('id')
         self.handle = int(ADDON_HANDLE)
+        self.cache_dir = xbmc.translatePath(
+            'special://temp/{}'.format(self.id_))
+        try:
+            os.makedirs(self.cache_dir)
+        except os.error as e:
+            pass
+        # store cache on (funname, hash(args + sorted_kwargs))
+        self.cache = {}
+        self.cache_keys_updated = set()
+
+    @staticmethod
+    def cache_hash(*args, **kwargs):
+        h_list = list(args)
+        h_list.extend(sorted(kwargs.items()))
+        return hashlib.md5(str(h_list)).hexdigest()
+
+    def load_cache(self, name):
+        cache_path = '{}/{}.json'.format(self.cache_dir, name)
+        if os.path.isfile(cache_path):
+            with open(cache_path, 'r') as cache_file:
+                try:
+                    self.cache[name] = json.load(cache_file)
+                except:
+                    return None
+                else:
+                    return True
+
+    def write_cache(self, name):
+        cache_path = '{}/{}.json'.format(self.cache_dir, name)
+        with open(cache_path, 'w') as cache_file:
+            json.dump(self.cache[name], cache_file)
+
+    def cache_get(self, name, *args, **kwargs):
+        if name not in self.cache:
+            if not self.load_cache(name):
+                return None
+        _hash = self.cache_hash(*args, **kwargs)
+        return self.cache[name].get(_hash)
+
+    def cache_set(self, name, val, *args, **kwargs):
+        _hash = self.cache_hash(*args, **kwargs)
+        self.cache.setdefault(name, dict())[_hash] = val
+        self.cache_keys_updated.add(name)
 
     def route(self, path):
         path = path.lstrip('/')
@@ -34,7 +82,9 @@ class Router(object):
         path = parsed.path.lstrip('/')
         kwargs = dict(parse_qsl(parsed.query))
         func = self.paths[path]
-        return func(**kwargs)
+        func(**kwargs)
+        for updated in self.cache_keys_updated:
+            self.write_cache(updated)
 
     def build_url(self, func, **kwargs):
         inverted = {v: k for k, v in self.paths.items()}
