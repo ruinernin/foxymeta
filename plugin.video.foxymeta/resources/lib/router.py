@@ -20,6 +20,7 @@ class Router(object):
         self.handle = int(ADDON_HANDLE)
 
     def route(self, path):
+        path = path.lstrip('/')
         if path in self.paths:
             raise ValueError('Route already definted')
         def wrapper(func):
@@ -30,7 +31,7 @@ class Router(object):
     def run(self):
         full_path = ADDON_URL + ADDON_QS
         parsed = urlparse(full_path)
-        path = parsed.path
+        path = parsed.path.lstrip('/')
         kwargs = dict(parse_qsl(parsed.query))
         func = self.paths[path]
         return func(**kwargs)

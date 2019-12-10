@@ -1,15 +1,13 @@
 import functools
 
-#from .router import router
+from .router import router
 from . import trakt_api
 from . import tvdb_api
 
 
-#trakt_api.get = functools.partial(trakt_api.get,
-#                                  auth_token=router.addon.getString(
-#                                      'trakt.auth_token'))
 trakt_api.get = functools.partial(trakt_api.get,
-                                  auth_token='')
+                                  auth_token=router.addon.getSettingString(
+                                      'trakt.access_token'))
 
 
 TRAKT_TRANSLATION = (('title', 'title'),
@@ -52,12 +50,10 @@ def trakt_movie(imdbid):
     return result
 
 
-def trakt_movies_popular():
+def trakt_movies_popular(page=1):
     path = 'movies/popular'
-    for page in range(1, 10):
-        result = trakt_api.get(path, extended='full', page=page)
-        for item in result:
-            yield item
+    result = trakt_api.get(path, extended='full', page=page)
+    return result
 
 
 def trakt_show(imdbid):
