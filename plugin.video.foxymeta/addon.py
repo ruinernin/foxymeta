@@ -17,8 +17,10 @@ def popular(page=1):
         info['mediatype'] = 'movie'
         li = xbmcgui.ListItem(info['title'])
         li.setArt({
-            'poster': artwork.tmdb_poster(movie['ids']['tmdb']),
-            'fanart': artwork.tmdb_backdrop(movie['ids']['tmdb'])
+            'poster': artwork.tmdb_poster(movie['ids']['tmdb'],
+                                          resolution='w780'),
+            'fanart': artwork.tmdb_backdrop(movie['ids']['tmdb'],
+                                            resolution='original')
         })
         li.setInfo('video', info)
         xbmcplugin.addDirectoryItem(router.handle, '', li, False)

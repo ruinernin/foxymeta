@@ -1,6 +1,7 @@
 import functools
 
 from .router import router
+from . import tmdb_api
 from . import trakt_api
 from . import tvdb_api
 
@@ -116,3 +117,8 @@ def tvdb_episode(jwt, tvdb_episodeid):
     path = 'episodes/{}'.format(tvdb_episodeid)
     result = tvdb_api.get(jwt, path)
     return result
+
+
+@router.memcache
+def tmdb_movie(tmdb_id):
+    return tmdb_api.get('/movie/{}'.format(tmdb_id))

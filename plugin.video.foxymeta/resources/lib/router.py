@@ -39,6 +39,18 @@ class Router(object):
         h_list.extend(sorted(kwargs.items()))
         return hashlib.md5(str(h_list)).hexdigest()
 
+    def memcache(self, func):
+        cache = {}
+        def wrapper(*args, **kwargs):
+            _hash = self.cache_hash(*args, **kwargs)
+            cached = cache.get(_hash)
+            if cached:
+                return cached
+            result = func(*args, **kwargs)
+            cache[_hash] = result
+            return result
+        return wrapper
+
     def load_cache(self, name):
         cache_path = '{}/{}.json'.format(self.cache_dir, name)
         if os.path.isfile(cache_path):
