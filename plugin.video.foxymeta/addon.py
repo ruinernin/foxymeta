@@ -23,7 +23,9 @@ def popular(page=1):
                                             resolution='original')
         })
         li.setInfo('video', info)
-        xbmcplugin.addDirectoryItem(router.handle, '', li, False)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(popular, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
@@ -78,6 +80,11 @@ def save_trakt_auth(response):
                                   response['refresh_token'])
     expires = response['created_at'] + response['expires_in']
     router.addon.setSettingInt('trakt.expires', expires)
+
+
+def openmeta_movie_uri(imdb_id):
+    return 'plugin://plugin.video.openmeta/movies/play/imdb/{}'.format(
+        imdb_id)
 
 
 if __name__ == '__main__':
