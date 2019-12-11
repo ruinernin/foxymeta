@@ -89,6 +89,18 @@ def trakt_episode(imdbid, season, episode):
     return result
 
 
+def trakt_liked_lists(page=1):
+    path = '/users/likes/lists'
+    result = trakt.get(path, page=page)
+    return result
+
+
+def trakt_list(user, list_id, _type):
+    path = '/users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+    result = trakt.get(path, extended='full')
+    return result
+
+
 @tvdb.jwt_auth
 def tvdb_show(jwt, tvdb_seriesid):
     path = 'series/{}'.format(tvdb_seriesid)

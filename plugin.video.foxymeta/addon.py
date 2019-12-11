@@ -10,7 +10,7 @@ from resources.lib.apis import trakt
 from resources.lib.router import router
 
 
-@router.route('/popular')
+@router.route('/trakt/popular')
 def popular(page=1):
     for movie in metadata.trakt_movies_popular(page=page):
         info = metadata.translate_info(metadata.TRAKT_TRANSLATION, movie)
@@ -30,8 +30,41 @@ def popular(page=1):
                                 router.build_url(popular, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
-    xbmcplugin.setContent(router.handle, 'movies')
     xbmcplugin.setPluginCategory(router.handle, 'Popular Movies')
+    xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/trakt/liked_lists')
+def liked_lists(page=1):
+    for _list in metadata.trakt_liked_lists(page=page):
+        li = xbmcgui.ListItem(_list['list']['name'])
+        url = router.build_url(trakt_list,
+                               user=_list['list']['user']['ids']['slug'],
+                               list_id=_list['list']['ids']['trakt'])
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    url,
+                                    li, True)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/trakt/list')
+def trakt_list(user, list_id):
+    for item in metadata.trakt_list(user, list_id, 'movies'):
+        movie = item['movie']
+        info = metadata.translate_info(metadata.TRAKT_TRANSLATION, movie)
+        info['dateadded'] = ' '.join(item['listed_at'].split('.')[0].split('T'))
+        li = xbmcgui.ListItem(info['title'])
+        li.setArt({
+            'poster': artwork.tmdb_poster(movie['ids']['tmdb'],
+                                          resolution='w780'),
+            'fanart': artwork.tmdb_backdrop(movie['ids']['tmdb'],
+                                            resolution='original')
+        })
+        li.setInfo('video', info)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -40,6 +73,10 @@ def root():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(popular),
                                 xbmcgui.ListItem('Popular Movies'),
+                                True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(liked_lists),
+                                xbmcgui.ListItem('Liked Lists'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(authenticate_trakt),
@@ -88,4 +125,5 @@ def openmeta_movie_uri(imdb_id):
 
 
 if __name__ == '__main__':
+    xbmcplugin.setContent(router.handle, 'movies')
     router.run()
