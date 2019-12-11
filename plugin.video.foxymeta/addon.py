@@ -4,7 +4,6 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-from resources.lib import artwork
 from resources.lib import metadata
 from resources.lib.apis import trakt
 from resources.lib.router import router
@@ -13,16 +12,7 @@ from resources.lib.router import router
 @router.route('/trakt/popular')
 def popular(page=1):
     for movie in metadata.trakt_movies_popular(page=page):
-        info = metadata.translate_info(metadata.TRAKT_TRANSLATION, movie)
-        info['mediatype'] = 'movie'
-        li = xbmcgui.ListItem(info['title'])
-        li.setArt({
-            'poster': artwork.tmdb_poster(movie['ids']['tmdb'],
-                                          resolution='w780'),
-            'fanart': artwork.tmdb_backdrop(movie['ids']['tmdb'],
-                                            resolution='original')
-        })
-        li.setInfo('video', info)
+        li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
                                     openmeta_movie_uri(movie['ids']['imdb']),
                                     li, False)
@@ -51,16 +41,10 @@ def liked_lists(page=1):
 def trakt_list(user, list_id):
     for item in metadata.trakt_list(user, list_id, 'movies'):
         movie = item['movie']
-        info = metadata.translate_info(metadata.TRAKT_TRANSLATION, movie)
-        info['dateadded'] = ' '.join(item['listed_at'].split('.')[0].split('T'))
-        li = xbmcgui.ListItem(info['title'])
-        li.setArt({
-            'poster': artwork.tmdb_poster(movie['ids']['tmdb'],
-                                          resolution='w780'),
-            'fanart': artwork.tmdb_backdrop(movie['ids']['tmdb'],
-                                            resolution='original')
+        li = metadata.movie_listitem(trakt_data=movie)
+        li.setInfo('video', {
+            'dateadded': ' '.join(item['listed_at'].split('.')[0].split('T')),
         })
-        li.setInfo('video', info)
         xbmcplugin.addDirectoryItem(router.handle,
                                     openmeta_movie_uri(movie['ids']['imdb']),
                                     li, False)

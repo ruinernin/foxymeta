@@ -5,6 +5,8 @@ from .apis import tmdb
 from .apis import trakt
 from .apis import tvdb
 
+import xbmcgui
+
 
 trakt.get = functools.partial(trakt.get,
                               auth_token=router.addon.getSettingString(
@@ -43,6 +45,24 @@ def translate_info(translation, data):
         if value:
             info_label[info_label_key] = value
     return info_label
+
+
+def movie_listitem(trakt_data=None):
+    info = {
+        'mediatype': 'movie',
+    }
+    tmdbid = None
+    if trakt_data:
+        info.update(translate_info(TRAKT_TRANSLATION, trakt_data))
+        tmdbid = trakt_data['ids']['tmdb']
+    li = xbmcgui.ListItem(info['title'])
+    li.setInfo('video', info)
+    if tmdbid:
+        li.setArt({
+            'poster': tmdb_poster(tmdbid, resolution='w780'),
+            'fanart': tmdb_backdrop(tmdbid, resolution='original'),
+        })
+    return li
 
 
 def trakt_movie(imdbid):
@@ -134,3 +154,21 @@ def tvdb_episode(jwt, tvdb_episodeid):
 @router.memcache
 def tmdb_movie(tmdb_id):
     return tmdb.get('/movie/{}'.format(tmdb_id))
+
+
+@router.cache
+def tmdb_poster(tmdb_id, resolution='w780'):
+    movie = metadata.tmdb_movie(tmdb_id)
+    poster_path = movie['poster_path']
+    return '{}/{}{}'.format(tmdb.IMAGE_URI,
+                            resolution,
+                            poster_path)
+
+
+@router.cache
+def tmdb_backdrop(tmdb_id, resolution='original'):
+    movie = metadata.tmdb_movie(tmdb_id)
+    backdrop_path = movie['backdrop_path']
+    return '{}/{}{}'.format(tmdb.IMAGE_URI,
+                            resolution,
+                            backdrop_path)

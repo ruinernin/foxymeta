@@ -103,6 +103,7 @@ class Router(object):
         parsed = urlparse(full_path)
         path = parsed.path.lstrip('/')
         kwargs = dict(parse_qsl(parsed.query))
+        kwargs.pop('reload', None)
         func = self.paths[path]
         func(**kwargs)
         for updated in self.cache_keys_updated:
