@@ -6,7 +6,7 @@ import xbmcplugin
 
 from resources.lib import artwork
 from resources.lib import metadata
-from resources.lib import trakt_api
+from resources.lib.apis import trakt
 from resources.lib.router import router
 
 
@@ -50,7 +50,7 @@ def root():
 
 @router.route('/auth_trakt')
 def authenticate_trakt():
-    init = trakt_api.authenticate()
+    init = trakt.authenticate()
     dialog = xbmcgui.DialogProgress()
     dialog.create('Enter code at: {}'.format(init['verification_url']),
                   init['user_code'])
@@ -58,7 +58,7 @@ def authenticate_trakt():
     while True:
         time.sleep(init['interval'])
         try:
-            token = trakt_api.authenticate(init['device_code'])
+            token = trakt.authenticate(init['device_code'])
         except Exception:
             pct_timeout = (time.time() - expires) / init['expires_in'] * 100
             pct_timeout = 100 - int(abs(pct_timeout))

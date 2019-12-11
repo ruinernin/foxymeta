@@ -1,14 +1,14 @@
 import functools
 
 from .router import router
-from . import tmdb_api
-from . import trakt_api
-from . import tvdb_api
+from .apis import tmdb
+from .apis import trakt
+from .apis import tvdb
 
 
-trakt_api.get = functools.partial(trakt_api.get,
-                                  auth_token=router.addon.getSettingString(
-                                      'trakt.access_token'))
+trakt.get = functools.partial(trakt.get,
+                              auth_token=router.addon.getSettingString(
+                                  'trakt.access_token'))
 
 
 TRAKT_TRANSLATION = (('title', 'title'),
@@ -47,37 +47,37 @@ def translate_info(translation, data):
 
 def trakt_movie(imdbid):
     path = 'movies/{}'.format(imdbid)
-    result = trakt_api.get(path, extended='full')
+    result = trakt.get(path, extended='full')
     return result
 
 
 def trakt_movies_popular(page=1):
     path = 'movies/popular'
-    result = trakt_api.get(path, extended='full', page=page)
+    result = trakt.get(path, extended='full', page=page)
     return result
 
 
 def trakt_show(imdbid):
     path = 'shows/{}'.format(imdbid)
-    result = trakt_api.get(path, extended='full')
+    result = trakt.get(path, extended='full')
     return result
 
 
 def trakt_seasons(imdbid, extended=False):
     path = 'shows/{}/seasons'.format(imdbid)
     if extended:
-        result = trakt_api.get(path, extended='full,episodes')
+        result = trakt.get(path, extended='full,episodes')
     else:
-        result = trakt_api.get(path)
+        result = trakt.get(path)
     return result
 
 
 def trakt_season(imdbid, season, extended=False):
     path = 'shows/{}/seasons/{:d}'.format(imdbid, int(season))
     if extended:
-        result = trakt_api.get(path, extended='full')
+        result = trakt.get(path, extended='full')
     else:
-        result = trakt_api.get(path)
+        result = trakt.get(path)
     return result
 
 
@@ -85,40 +85,40 @@ def trakt_episode(imdbid, season, episode):
     path = 'shows/{}/seasons/{:d}/episodes/{:d}'.format(imdbid,
                                                         int(season),
                                                         int(episode))
-    result = trakt_api.get(path, extended='full')
+    result = trakt.get(path, extended='full')
     return result
 
 
-@tvdb_api.jwt_auth
+@tvdb.jwt_auth
 def tvdb_show(jwt, tvdb_seriesid):
     path = 'series/{}'.format(tvdb_seriesid)
-    result = tvdb_api.get(jwt, path)['data']
+    result = tvdb.get(jwt, path)['data']
     path = 'series/{}/episodes/summary'.format(tvdb_seriesid)
-    result.update(tvdb_api.get(jwt, path)['data'])
+    result.update(tvdb.get(jwt, path)['data'])
     return result
 
 
-@tvdb_api.jwt_auth
+@tvdb.jwt_auth
 def tvdb_show_images(jwt, tvdb_seriesid, keyType='fanart'):
     path = 'series/{}/images/query'.format(tvdb_seriesid)
-    result = tvdb_api.get(jwt, path, keyType=keyType)
+    result = tvdb.get(jwt, path, keyType=keyType)
     return result
 
 
-@tvdb_api.jwt_auth
+@tvdb.jwt_auth
 def tvdb_season(jwt, tvdb_seriesid, season):
     path = 'series/{}/episodes/query'.format(tvdb_seriesid)
-    result = tvdb_api.get(jwt, path, airedSeason=season)['data']
+    result = tvdb.get(jwt, path, airedSeason=season)['data']
     return result
 
 
-@tvdb_api.jwt_auth
+@tvdb.jwt_auth
 def tvdb_episode(jwt, tvdb_episodeid):
     path = 'episodes/{}'.format(tvdb_episodeid)
-    result = tvdb_api.get(jwt, path)
+    result = tvdb.get(jwt, path)
     return result
 
 
 @router.memcache
 def tmdb_movie(tmdb_id):
-    return tmdb_api.get('/movie/{}'.format(tmdb_id))
+    return tmdb.get('/movie/{}'.format(tmdb_id))

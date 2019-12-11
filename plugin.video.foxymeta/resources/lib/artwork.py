@@ -1,5 +1,5 @@
 from . import metadata
-from . import tmdb_api
+from .apis import tmdb
 from .router import router
 
 
@@ -7,7 +7,7 @@ from .router import router
 def tmdb_poster(tmdb_id, resolution='w780'):
     movie = metadata.tmdb_movie(tmdb_id)
     poster_path = movie['poster_path']
-    return '{}/{}{}'.format(tmdb_api.IMAGE_URI,
+    return '{}/{}{}'.format(tmdb.IMAGE_URI,
                             resolution,
                             poster_path)
 
@@ -16,6 +16,6 @@ def tmdb_poster(tmdb_id, resolution='w780'):
 def tmdb_backdrop(tmdb_id, resolution='original'):
     movie = metadata.tmdb_movie(tmdb_id)
     backdrop_path = movie['backdrop_path']
-    return '{}/{}{}'.format(tmdb_api.IMAGE_URI,
+    return '{}/{}{}'.format(tmdb.IMAGE_URI,
                             resolution,
                             backdrop_path)
