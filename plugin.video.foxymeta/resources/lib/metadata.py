@@ -71,10 +71,18 @@ def trakt_movie(imdbid):
     return result
 
 
-def trakt_movies_popular(page=1):
-    path = 'movies/popular'
+def trakt_movies(_list='popular', page=1):
+    path = 'movies/{}'.format(_list)
     result = trakt.get(path, extended='full', page=page)
-    return result
+    final = []
+    # Some calls return items nested amongst data we don't care about such as
+    # played/collected/watched counts, strip it and have homogenous API.
+    for item in result:
+        if 'movie' in item:
+            final.append(item['movie'])
+        else:
+            final.append(item)
+    return final
 
 
 def trakt_show(imdbid):

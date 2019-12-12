@@ -9,9 +9,10 @@ from resources.lib.apis import trakt
 from resources.lib.router import router
 
 
+
 @router.route('/trakt/popular')
 def popular(page=1):
-    for movie in metadata.trakt_movies_popular(page=page):
+    for movie in metadata.trakt_movies(_list='popular', page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
                                     openmeta_movie_uri(movie['ids']['imdb']),
@@ -21,6 +22,34 @@ def popular(page=1):
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.setPluginCategory(router.handle, 'Popular Movies')
+    xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/trakt/played')
+def played(page=1):
+    for movie in metadata.trakt_movies(_list='played', page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(played, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/trakt/trending')
+def trending(page=1):
+    for movie in metadata.trakt_movies(_list='trending', page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -61,6 +90,14 @@ def root():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(popular),
                                 xbmcgui.ListItem('Popular Movies'),
+                                True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending),
+                                xbmcgui.ListItem('Trending Movies'),
+                                True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(played),
+                                xbmcgui.ListItem('Most Played Movies'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(liked_lists),
