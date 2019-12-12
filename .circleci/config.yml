@@ -62,3 +62,15 @@ workflows:
               ignore: /.*/
             tags:
               only: /.*/
+      - release:
+          commit_branch: devrepo
+          overwrite: true
+          context: publish
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - devrepo
+                - master
+                - repo
