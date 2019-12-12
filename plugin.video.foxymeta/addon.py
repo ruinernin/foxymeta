@@ -34,6 +34,10 @@ def liked_lists(page=1):
         xbmcplugin.addDirectoryItem(router.handle,
                                     url,
                                     li, True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(liked_lists, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
     xbmcplugin.endOfDirectory(router.handle)
 
 
