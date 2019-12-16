@@ -29,6 +29,11 @@ TVDB_EPISODE_TRANSLATION = (('episodeName', 'title'),
                             ('firstAired', 'aired'),)
 
 
+TMDB_TRANSLATION = (('title', 'title'),
+                    ('release_date', 'premiered'),
+                    ('overview', 'plot'),)
+
+
 def translate_info(translation, data):
     info_label = {}
     for data_key, info_label_key in translation:
@@ -47,7 +52,7 @@ def translate_info(translation, data):
     return info_label
 
 
-def movie_listitem(trakt_data=None):
+def movie_listitem(trakt_data=None, tmdb_data=None):
     info = {
         'mediatype': 'movie',
     }
@@ -55,12 +60,22 @@ def movie_listitem(trakt_data=None):
     if trakt_data:
         info.update(translate_info(TRAKT_TRANSLATION, trakt_data))
         tmdbid = trakt_data['ids']['tmdb']
+    if tmdb_data:
+        info.update(translate_info(TMDB_TRANSLATION, tmdb_data))
+        tmdbid = tmdb_data['id']
     li = xbmcgui.ListItem(info['title'])
     li.setInfo('video', info)
-    if tmdbid:
+    if tmdb_data:
+        li.setArt({
+            'poster': '{}/{}{}'.format(tmdb.IMAGE_URI, 'w780',
+                                      tmdb_data['poster_path']),
+            'fanart': '{}/{}{}'.format(tmdb.IMAGE_URI, 'w1280',
+                                      tmdb_data['backdrop_path']),
+        })
+    elif tmdbid:
         li.setArt({
             'poster': tmdb_poster(tmdbid, resolution='w780'),
-            'fanart': tmdb_backdrop(tmdbid, resolution='original'),
+            'fanart': tmdb_backdrop(tmdbid, resolution='w1280'),
         })
     return li
 
@@ -174,9 +189,14 @@ def tmdb_poster(tmdb_id, resolution='w780'):
 
 
 @router.cache
-def tmdb_backdrop(tmdb_id, resolution='original'):
+def tmdb_backdrop(tmdb_id, resolution='w1280'):
     movie = tmdb_movie(tmdb_id)
     backdrop_path = movie['backdrop_path']
     return '{}/{}{}'.format(tmdb.IMAGE_URI,
                             resolution,
                             backdrop_path)
+
+
+def tmdb_trending(page=1, media_type='movie', time_window='week'):
+    path = '/trending/{}/{}'.format(media_type, time_window)
+    return tmdb.get(path, page=page)

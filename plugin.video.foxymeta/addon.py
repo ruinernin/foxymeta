@@ -85,6 +85,23 @@ def trakt_list(user, list_id):
     xbmcplugin.endOfDirectory(router.handle)
 
 
+
+@router.route('/tmdb/trending')
+def tmdb_trending(media_type='movie', page=1):
+    result = metadata.tmdb_trending(media_type='movie', page=page)
+    for item in result['results']:
+        li = metadata.movie_listitem(tmdb_data=item)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(item['id'], src='tmdb'),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(tmdb_trending,
+                                                 page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
 @router.route('/')
 def root():
     xbmcplugin.addDirectoryItem(router.handle,
@@ -94,6 +111,10 @@ def root():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(trending),
                                 xbmcgui.ListItem('Trending Movies'),
+                                True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(tmdb_trending),
+                                xbmcgui.ListItem('Trending Movies (TMDB)'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(played),
@@ -144,9 +165,10 @@ def save_trakt_auth(response):
     router.addon.setSettingInt('trakt.expires', expires)
 
 
-def openmeta_movie_uri(imdb_id):
-    return 'plugin://plugin.video.openmeta/movies/play/imdb/{}'.format(
-        imdb_id)
+def openmeta_movie_uri(_id, src='imdb'):
+    return 'plugin://plugin.video.openmeta/movies/play/{}/{}'.format(
+        src,
+        _id)
 
 
 if __name__ == '__main__':
