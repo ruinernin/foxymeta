@@ -8,6 +8,7 @@ from resources.lib import metadata
 from resources.lib.apis import trakt
 from resources.lib.router import router
 
+_periods = ['weekly', 'monthly', 'yearly', 'all']
 
 
 @router.route('/trakt/popular')
@@ -27,7 +28,8 @@ def popular(page=1):
 
 @router.route('/trakt/played')
 def played(page=1):
-    for movie in metadata.trakt_movies(_list='played', page=page):
+    set_period = router.addon.getSettingInt('list.time.period')
+    for movie in metadata.trakt_movies(_list='played/{}'.format(_periods[set_period]), page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
                                     openmeta_movie_uri(movie['ids']['imdb']),
@@ -52,7 +54,82 @@ def trending(page=1):
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
 
+    
+@router.route('/trakt/watched')
+def watched(page=1):
+    set_period = router.addon.getSettingInt('list.time.period')
+    for movie in metadata.trakt_movies(_list='watched/{}'.format(_periods[set_period]), page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+    
 
+@router.route('/trakt/collected')
+def collected(page=1):
+    set_period = router.addon.getSettingInt('list.time.period')
+    for movie in metadata.trakt_movies(_list='collected/{}'.format(_periods[set_period]), page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+    
+
+@router.route('/trakt/anticipated')
+def anticipated(page=1):
+    for movie in metadata.trakt_movies(_list='anticipated', page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+    
+    
+@router.route('/trakt/boxoffice')
+def boxoffice(page=1):
+    for movie in metadata.trakt_movies(_list='boxoffice', page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+    
+    
+@router.route('/trakt/updates')
+def updates(page=1):
+    current_date = time.gmtime()
+    start_date = time.strftime("%Y-%m-%d", current_date)
+
+    for movie in metadata.trakt_movies(_list='updates/{}'.format(start_date), page=page):
+        li = metadata.movie_listitem(trakt_data=movie)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(trending, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+    
+    
 @router.route('/trakt/liked_lists')
 def liked_lists(page=1):
     for _list in metadata.trakt_liked_lists(page=page):
@@ -120,6 +197,26 @@ def root():
                                 router.build_url(played),
                                 xbmcgui.ListItem('Most Played Movies'),
                                 True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(watched),
+                                xbmcgui.ListItem('Most Watched Movies'),
+                                True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(collected),
+                                xbmcgui.ListItem('Most Collected Movies'),
+                                True)                                
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(anticipated),
+                                xbmcgui.ListItem('Most Anticipated Movies'),
+                                True)                                         
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(boxoffice),
+                                xbmcgui.ListItem('Box Office Top 10'),
+                                True)                                         
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(updates),
+                                xbmcgui.ListItem('Recently Updated Movies'),
+                                True)                                         
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(liked_lists),
                                 xbmcgui.ListItem('Liked Lists'),
