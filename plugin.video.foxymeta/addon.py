@@ -1,22 +1,23 @@
 import time
+import urllib
 
 import xbmc
 import xbmcgui
 import xbmcplugin
 
 from resources.lib import metadata
-from resources.lib.apis import trakt
+from resources.lib.apis import tmdb, trakt
 from resources.lib.router import router
 
-_periods = ['weekly', 'monthly', 'yearly', 'all']
 
 
 @router.route('/trakt/popular')
 def popular(page=1):
     for movie in metadata.trakt_movies(_list='popular', page=page):
         li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(popular, page=int(page)+1),
@@ -28,11 +29,13 @@ def popular(page=1):
 
 @router.route('/trakt/played')
 def played(page=1):
-    set_period = router.addon.getSettingInt('list.time.period')
-    for movie in metadata.trakt_movies(_list='played/{}'.format(_periods[set_period]), page=page):
+    period = router.addon.getSettingString('list.time.period').lower()
+    _list = 'played/{}'.format(period)
+    for movie in metadata.trakt_movies(_list=_list, page=page):
         li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(played, page=int(page)+1),
@@ -45,8 +48,9 @@ def played(page=1):
 def trending(page=1):
     for movie in metadata.trakt_movies(_list='trending', page=page):
         li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(trending, page=int(page)+1),
@@ -54,82 +58,83 @@ def trending(page=1):
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
 
-    
+
 @router.route('/trakt/watched')
 def watched(page=1):
-    set_period = router.addon.getSettingInt('list.time.period')
-    for movie in metadata.trakt_movies(_list='watched/{}'.format(_periods[set_period]), page=page):
+    period = router.addon.getSettingString('list.time.period').lower()
+    _list = 'watched/{}'.format(period)
+    for movie in metadata.trakt_movies(_list=_list, page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(trending, page=int(page)+1),
+                                router.build_url(watched, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-    
+
 
 @router.route('/trakt/collected')
 def collected(page=1):
-    set_period = router.addon.getSettingInt('list.time.period')
-    for movie in metadata.trakt_movies(_list='collected/{}'.format(_periods[set_period]), page=page):
+    period = router.addon.getSettingString('list.time.period').lower()
+    _list = 'collected/{}'.format(period)
+    for movie in metadata.trakt_movies(_list=_list, page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(trending, page=int(page)+1),
+                                router.build_url(collected, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-    
+
 
 @router.route('/trakt/anticipated')
 def anticipated(page=1):
     for movie in metadata.trakt_movies(_list='anticipated', page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(trending, page=int(page)+1),
+                                router.build_url(anticipated, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-    
-    
+
+
 @router.route('/trakt/boxoffice')
 def boxoffice(page=1):
     for movie in metadata.trakt_movies(_list='boxoffice', page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(trending, page=int(page)+1),
+                                router.build_url(boxoffice, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-    
-    
+
+
 @router.route('/trakt/updates')
 def updates(page=1):
-    current_date = time.gmtime()
-    start_date = time.strftime("%Y-%m-%d", current_date)
-
-    for movie in metadata.trakt_movies(_list='updates/{}'.format(start_date), page=page):
+    start_date = time.strftime('%Y-%m-%d', time.gmtime())
+    _list = 'updates/{}'.format(start_date)
+    for movie in metadata.trakt_movies(_list=_list, page=page):
         li = metadata.movie_listitem(trakt_data=movie)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(trending, page=int(page)+1),
+                                router.build_url(updates, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-    
-    
+
+
 @router.route('/trakt/liked_lists')
 def liked_lists(page=1):
     for _list in metadata.trakt_liked_lists(page=page):
@@ -155,8 +160,9 @@ def trakt_list(user, list_id):
         li.setInfo('video', {
             'dateadded': ' '.join(item['listed_at'].split('.')[0].split('T')),
         })
+        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(movie['ids']['imdb']),
+                                    foxy_movie_uri(movie['ids']['imdb']),
                                     li, False)
     xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)
@@ -168,8 +174,9 @@ def tmdb_trending(media_type='movie', page=1):
     result = metadata.tmdb_trending(media_type='movie', page=page)
     for item in result['results']:
         li = metadata.movie_listitem(tmdb_data=item)
+        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    openmeta_movie_uri(item['id'], src='tmdb'),
+                                    foxy_movie_uri(item['id'], src='tmdb'),
                                     li, False)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(tmdb_trending,
@@ -204,19 +211,19 @@ def root():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(collected),
                                 xbmcgui.ListItem('Most Collected Movies'),
-                                True)                                
+                                True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(anticipated),
                                 xbmcgui.ListItem('Most Anticipated Movies'),
-                                True)                                         
+                                True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(boxoffice),
                                 xbmcgui.ListItem('Box Office Top 10'),
-                                True)                                         
+                                True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(updates),
                                 xbmcgui.ListItem('Recently Updated Movies'),
-                                True)                                         
+                                True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(liked_lists),
                                 xbmcgui.ListItem('Liked Lists'),
@@ -262,10 +269,11 @@ def save_trakt_auth(response):
     router.addon.setSettingInt('trakt.expires', expires)
 
 
-def openmeta_movie_uri(_id, src='imdb'):
-    return 'plugin://plugin.video.openmeta/movies/play/{}/{}'.format(
-        src,
-        _id)
+def foxy_movie_uri(_id, src='imdb'):
+    base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
+    if src == 'tmdb':
+        _id = tmdb.get('/movie/{}/external_ids'.format(_id))['imdb_id']
+    return base_uri + urllib.urlencode({'imdb': _id})
 
 
 if __name__ == '__main__':

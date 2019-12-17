@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="Lists">
-        <setting type="enum" id="list.time.period" label="Time period for 'recently' lists" values="Weekly|Monthly|Yearly|All" default="0" />
+        <setting type="labelenum" id="list.time.period" label="Time period for 'recently' lists" values="Weekly|Monthly|Yearly|All" default="Weekly" />
     </category>
     <category label="BTS">
         <setting type="text" id="trakt.access_token" label="trakt.access_token" />
