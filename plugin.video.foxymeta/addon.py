@@ -148,8 +148,8 @@ def tmdb_trending(media_type='movie', page=1):
     xbmcplugin.endOfDirectory(router.handle)
 
 
-@router.route('/')
-def root():
+@router.route('/app/movies')
+def movies():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(popular),
                                 xbmcgui.ListItem('Popular Movies'),
@@ -189,6 +189,15 @@ def root():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(liked_lists),
                                 xbmcgui.ListItem('Liked Lists'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/')
+def root():
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(movies),
+                                xbmcgui.ListItem('Movies'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(authenticate_trakt),
