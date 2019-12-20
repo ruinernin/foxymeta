@@ -11,6 +11,8 @@ import sys
 
 import xbmc
 import xbmcaddon
+import xbmcgui
+import xbmcplugin
 
 
 
@@ -117,6 +119,14 @@ class Router(object):
             query = urlencode(kwargs)
             url += '?' + query
         return url
+
+    def gui_dirlist(self, *funcs_names):
+        for func, name in funcs_names:
+            xbmcplugin.addDirectoryItem(self.handle,
+                                        self.build_url(func),
+                                        xbmcgui.ListItem(name),
+                                        True)
+        xbmcplugin.endOfDirectory(router.handle)
 
 
 router = Router()
