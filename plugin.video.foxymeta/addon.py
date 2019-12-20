@@ -150,18 +150,17 @@ def tmdb_trending(media_type='movie', page=1):
 
 @router.route('/app/movies')
 def movies():
-    router.gui_dirlist(
-        (popular, 'Popular Movies'),
-        (trending, 'Trending Movies'),
-        (tmdb_trending, 'Trending Movies (TMDB)'),
-        (played, 'Most Played Movies'),
-        (watched, 'Most Watched Movies'),
-        (collected, 'Most Collected Movies'),
-        (anticipated, 'Most Anticipated Movies'),
-        (boxoffice, 'Box Office Top 10'),
-        (updates, 'Recently Updated Movies'),
-        (liked_lists, 'Liked Lists'))
-
+    router.gui_dirlist([(popular, 'Popular Movies'),
+                        (trending, 'Trending Movies'),
+                        (tmdb_trending, 'Trending Movies (TMDB)'),
+                        (played, 'Most Played Movies'),
+                        (watched, 'Most Watched Movies'),
+                        (collected, 'Most Collected Movies'),
+                        (anticipated, 'Most Anticipated Movies'),
+                        (boxoffice, 'Box Office Top 10'),
+                        (updates, 'Recently Updated Movies'),
+                        (liked_lists, 'Liked Lists')],
+                       dirs=True)
 
 @router.route('/')
 def root():

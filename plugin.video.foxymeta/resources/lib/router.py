@@ -120,13 +120,14 @@ class Router(object):
             url += '?' + query
         return url
 
-    def gui_dirlist(self, *funcs_names):
+    def gui_dirlist(self, funcs_names, dirs=False, more=False):
         for func, name in funcs_names:
             xbmcplugin.addDirectoryItem(self.handle,
                                         self.build_url(func),
                                         xbmcgui.ListItem(name),
-                                        True)
-        xbmcplugin.endOfDirectory(router.handle)
+                                        dirs)
+        if not more:
+            xbmcplugin.endOfDirectory(router.handle)
 
 
 router = Router()
