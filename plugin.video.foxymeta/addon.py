@@ -150,46 +150,21 @@ def tmdb_trending(media_type='movie', page=1):
 
 @router.route('/app/movies')
 def movies():
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(popular),
-                                xbmcgui.ListItem('Popular Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(trending),
-                                xbmcgui.ListItem('Trending Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(tmdb_trending),
-                                xbmcgui.ListItem('Trending Movies (TMDB)'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(played),
-                                xbmcgui.ListItem('Most Played Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(watched),
-                                xbmcgui.ListItem('Most Watched Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(collected),
-                                xbmcgui.ListItem('Most Collected Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(anticipated),
-                                xbmcgui.ListItem('Most Anticipated Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(boxoffice),
-                                xbmcgui.ListItem('Box Office Top 10'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(updates),
-                                xbmcgui.ListItem('Recently Updated Movies'),
-                                True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(liked_lists),
-                                xbmcgui.ListItem('Liked Lists'),
-                                True)
+    def diritem(func, name):
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    router.build_url(func),
+                                    xbmcgui.ListItem(name),
+                                    True)
+    diritem(popular, 'Popular Movies')
+    diritem(trending, 'Trending Movies')
+    diritem(tmdb_trending, 'Trending Movies (TMDB)')
+    diritem(played, 'Most Played Movies')
+    diritem(watched, 'Most Watched Movies')
+    diritem(collected, 'Most Collected Movies')
+    diritem(anticipated, 'Most Anticipated Movies')
+    diritem(boxoffice, 'Box Office Top 10')
+    diritem(updates, 'Recently Updated Movies')
+    diritem(liked_lists, 'Liked Lists')
     xbmcplugin.endOfDirectory(router.handle)
 
 
