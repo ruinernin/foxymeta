@@ -144,6 +144,12 @@ def trakt_list(user, list_id, _type):
     return result
 
 
+def trakt_collection(_type='movies'):
+    path = '/sync/collection/{}'.format(_type)
+    result = trakt.get(path)
+    return result
+
+
 @tvdb.jwt_auth
 def tvdb_show(jwt, tvdb_seriesid):
     path = 'series/{}'.format(tvdb_seriesid)
