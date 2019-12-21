@@ -132,21 +132,28 @@ def trakt_episode(imdbid, season, episode):
     return result
 
 
+# THIS ISN'T WORKING :(
+def trakt_personal_lists(user, page=1):
+    path = '/users/{}/lists'.format(user)
+    result = trakt.get(path, page=page)
+    return result
+    
+
 def trakt_liked_lists(page=1):
     path = '/users/likes/lists'
     result = trakt.get(path, page=page)
+    return result
+    
+    
+def trakt_collection(_type='movies'):
+    path = '/sync/collection/{}'.format(_type)
+    result = trakt.get(path)
     return result
 
 
 def trakt_list(user, list_id, _type):
     path = '/users/{}/lists/{}/items/{}'.format(user, list_id, _type)
     result = trakt.get(path, extended='full')
-    return result
-
-
-def trakt_collection(_type='movies'):
-    path = '/sync/collection/{}'.format(_type)
-    result = trakt.get(path)
     return result
 
 

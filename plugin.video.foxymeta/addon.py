@@ -109,6 +109,24 @@ def collection(_type='movies'):
     xbmcplugin.endOfDirectory(router.handle)
 
 
+# THIS ISN'T WORKING :(
+@router.route('/trakt/personal_lists')
+def personal_lists(user, page=1):
+    for _list in metadata.trakt_personal_lists('me', page=page):
+        li = xbmcgui.ListItem(_list['list']['name'])
+        url = router.build_url(trakt_list,
+                               user=_list['list']['user']['ids']['slug'],
+                               list_id=_list['list']['ids']['trakt'])
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    url,
+                                    li, True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(personal_lists, page=int(page)+1),
+                                xbmcgui.ListItem('Next'),
+                                True)
+    xbmcplugin.endOfDirectory(router.handle)
+    
+
 @router.route('/trakt/liked_lists')
 def liked_lists(page=1):
     for _list in metadata.trakt_liked_lists(page=page):
@@ -174,6 +192,7 @@ def movies():
                        
     if router.addon.getSettingString('trakt.access_token'):
         router.gui_dirlist([(collection, 'Collection'),
+                            # (personal_lists, 'Personal Lists'),
                             (liked_lists, 'Liked Lists')],
                            dirs=True)
                        
