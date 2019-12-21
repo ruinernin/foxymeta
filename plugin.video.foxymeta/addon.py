@@ -95,6 +95,18 @@ def updates(page=1):
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
+    
+
+@router.route('/trakt/collection')
+def collection(_type='movies'):
+    for item in metadata.trakt_collection(_type=_type):
+        movie = item['movie']
+        li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.endOfDirectory(router.handle)
 
 
 @router.route('/trakt/liked_lists')
@@ -112,7 +124,7 @@ def liked_lists(page=1):
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-
+    
 
 @router.route('/trakt/list')
 def trakt_list(user, list_id):
@@ -128,8 +140,7 @@ def trakt_list(user, list_id):
                                     li, False)
     xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)
-
-
+    
 
 @router.route('/tmdb/trending')
 def tmdb_trending(media_type='movie', page=1):
@@ -158,9 +169,14 @@ def movies():
                         (collected, 'Most Collected Movies'),
                         (anticipated, 'Most Anticipated Movies'),
                         (boxoffice, 'Box Office Top 10'),
-                        (updates, 'Recently Updated Movies'),
-                        (liked_lists, 'Liked Lists')],
-                       dirs=True)
+                        (updates, 'Recently Updated Movies')],
+                       dirs=True,  more=True)
+                       
+    if router.addon.getSettingString('trakt.access_token'):
+        router.gui_dirlist([(collection, 'Collection'),
+                            (liked_lists, 'Liked Lists')],
+                           dirs=True)
+                       
 
 @router.route('/')
 def root():
