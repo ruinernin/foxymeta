@@ -262,7 +262,7 @@ def save_trakt_auth(response):
                                   response['refresh_token'])
     expires = response['created_at'] + response['expires_in']
     router.addon.setSettingInt('trakt.expires', expires)
-    router.addon.setSettingString('trakt.username', trakt.get_username())
+    router.addon.setSettingString('trakt.username', trakt.get_username(response['access_token']))
 
 
 def foxy_movie_uri(_id, src='imdb'):
