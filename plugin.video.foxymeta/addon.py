@@ -179,6 +179,7 @@ def tmdb_trending(media_type='movie', page=1):
 
 @router.route('/app/movies')
 def movies():
+    trakt_token = router.addon.getSettingString('trakt.access_token')
     router.gui_dirlist([(popular, 'Popular Movies'),
                         (trending, 'Trending Movies'),
                         (tmdb_trending, 'Trending Movies (TMDB)'),
@@ -188,9 +189,9 @@ def movies():
                         (anticipated, 'Most Anticipated Movies'),
                         (boxoffice, 'Box Office Top 10'),
                         (updates, 'Recently Updated Movies')],
-                       dirs=True,  more=True)
-                       
-    if router.addon.getSettingString('trakt.access_token'):
+                       dirs=True,  more=trakt_token != '')
+
+    if trakt_token != '':
         router.gui_dirlist([(collection, 'Collection'),
                             # (personal_lists, 'Personal Lists'),
                             (liked_lists, 'Liked Lists')],
