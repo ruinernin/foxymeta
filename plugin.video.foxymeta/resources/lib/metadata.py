@@ -73,10 +73,16 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
                                       tmdb_data['backdrop_path']),
         })
     elif tmdbid:
-        li.setArt({
-            'poster': tmdb_poster(tmdbid, resolution='w780'),
-            'fanart': tmdb_backdrop(tmdbid, resolution='w1280'),
-        })
+        art = {}
+        try:
+            art['poster'] = tmdb_poster(tmdbid, resolution='w780')
+        except KeyError:
+            pass
+        try:
+            art['fanart'] = tmdb_backdrop(tmdbid, resolution='w1280')
+        except KeyError:
+            pass
+        li.setArt(art)
     return li
 
 
@@ -132,21 +138,32 @@ def trakt_episode(imdbid, season, episode):
     return result
 
 
+def trakt_personal_lists():
+    user = trakt.get('users/me')['username']
+    return trakt_users_lists(user)
+
+
+def trakt_users_lists(user):
+    path = '/users/{}/lists'.format(user)
+    result = trakt.get(path)
+    return result
+
+
 def trakt_liked_lists(page=1):
     path = '/users/likes/lists'
     result = trakt.get(path, page=page)
     return result
 
 
-def trakt_list(user, list_id, _type):
-    path = '/users/{}/lists/{}/items/{}'.format(user, list_id, _type)
-    result = trakt.get(path, extended='full')
-    return result
-
-
 def trakt_collection(_type='movies'):
     path = '/sync/collection/{}'.format(_type)
     result = trakt.get(path)
+    return result
+
+
+def trakt_list(user, list_id, _type):
+    path = '/users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+    result = trakt.get(path, extended='full')
     return result
 
 

@@ -44,7 +44,7 @@ def authenticate(code=None, expires=None):
     if expires >= time.time():
         result = requests.post(API_URL + 'oauth/token',
                                data={
-                                   'client_id:': CLIENT_ID,
+                                   'client_id': CLIENT_ID,
                                    'client_secret': CLIENT_SECRET,
                                    'refresh_token': code,
                                    'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
@@ -53,6 +53,20 @@ def authenticate(code=None, expires=None):
         return result.json()
     return False
 
+
+def revoke(token):
+    result = requests.post(API_URL + 'oauth/revoke',
+                           data={
+                               'client_id': CLIENT_ID,
+                               'client_secret': CLIENT_SECRET,
+                               'token': token
+                           })
+    return result
+
+
+def get_username(token):
+    result = get('users/me', auth_token=token)
+    return result['username']
 
 def get(path, auth_token=None, **params):
     headers = {

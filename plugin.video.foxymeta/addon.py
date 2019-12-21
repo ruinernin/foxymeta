@@ -97,6 +97,31 @@ def updates(page=1):
     xbmcplugin.endOfDirectory(router.handle)
 
 
+@router.route('/trakt/collection')
+def collection(_type='movies'):
+    for item in metadata.trakt_collection(_type=_type):
+        movie = item['movie']
+        li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/trakt/personal_lists')
+def personal_lists():
+    for _list in metadata.trakt_personal_lists():
+        li = xbmcgui.ListItem(_list['name'])
+        url = router.build_url(trakt_list,
+                               user=_list['user']['ids']['slug'],
+                               list_id=_list['ids']['trakt'])
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    url,
+                                    li, True)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
 @router.route('/trakt/liked_lists')
 def liked_lists(page=1):
     for _list in metadata.trakt_liked_lists(page=page):
@@ -130,7 +155,6 @@ def trakt_list(user, list_id):
     xbmcplugin.endOfDirectory(router.handle)
 
 
-
 @router.route('/tmdb/trending')
 def tmdb_trending(media_type='movie', page=1):
     result = metadata.tmdb_trending(media_type='movie', page=page)
@@ -150,6 +174,7 @@ def tmdb_trending(media_type='movie', page=1):
 
 @router.route('/app/movies')
 def movies():
+    trakt_token = router.addon.getSettingString('trakt.access_token')
     router.gui_dirlist([(popular, 'Popular Movies'),
                         (trending, 'Trending Movies'),
                         (tmdb_trending, 'Trending Movies (TMDB)'),
@@ -158,9 +183,14 @@ def movies():
                         (collected, 'Most Collected Movies'),
                         (anticipated, 'Most Anticipated Movies'),
                         (boxoffice, 'Box Office Top 10'),
-                        (updates, 'Recently Updated Movies'),
-                        (liked_lists, 'Liked Lists')],
-                       dirs=True)
+                        (updates, 'Recently Updated Movies')],
+                       dirs=True,  more=trakt_token)
+    if trakt_token != '':
+        router.gui_dirlist([(collection, 'Collection'),
+                            (personal_lists, 'Personal Lists'),
+                            (liked_lists, 'Liked Lists')],
+                           dirs=True)
+
 
 @router.route('/')
 def root():
@@ -179,8 +209,11 @@ def root():
 def authenticate_trakt():
     init = trakt.authenticate()
     dialog = xbmcgui.DialogProgress()
-    dialog.create('Enter code at: {}'.format(init['verification_url']),
-                  init['user_code'])
+    dialog.create('FoxyMeta: Authorize Trakt',
+                  ('Enter the following code at:\n'
+                   '{url}\n\n'
+                   '{code}').format(url=init['verification_url'],
+                                    code=init['user_code']))
     expires = time.time() + init['expires_in']
     while True:
         time.sleep(init['interval'])
@@ -191,13 +224,33 @@ def authenticate_trakt():
             pct_timeout = 100 - int(abs(pct_timeout))
             if pct_timeout >= 100 or dialog.iscanceled():
                 dialog.close()
-                xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Auth failed')
+                xbmcgui.Dialog().notification('FoxyMeta',
+                                              'Trakt Authorization Failed')
                 return
             dialog.update(int(pct_timeout))
         else:
             dialog.close()
             save_trakt_auth(token)
+            xbmcgui.Dialog().notification('FoxyMeta',
+                                          'Trakt Authorization Succeeded')
             return
+
+
+@router.route('/revoke_trakt')
+def revoke_trakt():
+    dialog = xbmcgui.Dialog()
+    choice = dialog.yesno('FoxyMeta: Revoke Trakt',
+                          ('Are you sure you want to revoke authorization with'
+                           ' Trakt.tv?'))
+    if not choice:
+        return
+    result = trakt.revoke(router.addon.getSettingString('trakt.access_token'))
+    if result.status_code == 200:
+        router.addon.setSettingString('trakt.access_token', '')
+        router.addon.setSettingString('trakt.refresh_token', '')
+        router.addon.setSettingString('trakt.username', '')
+        router.addon.setSettingInt('trakt.expires', 0)
+        xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Authorization Revoked')
 
 
 def save_trakt_auth(response):
@@ -207,6 +260,8 @@ def save_trakt_auth(response):
                                   response['refresh_token'])
     expires = response['created_at'] + response['expires_in']
     router.addon.setSettingInt('trakt.expires', expires)
+    router.addon.setSettingString('trakt.username',
+                                  trakt.get_username(response['access_token']))
 
 
 def foxy_movie_uri(_id, src='imdb'):

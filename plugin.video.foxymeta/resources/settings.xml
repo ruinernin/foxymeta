@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="Lists">
+    <category label="Trakt">
+        <setting type="action" id="trakt.username" label="Authorize Trakt" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/auth_trakt)" />
+        <setting type="action" label="Revoke Trakt" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/revoke_trakt)" visible="!eq(-1,)" />
         <setting type="labelenum" id="list.time.period" label="Time period for 'recently' lists" values="Weekly|Monthly|Yearly|All" default="Weekly" />
-    </category>
-    <category label="BTS">
-        <setting type="text" id="trakt.access_token" label="trakt.access_token" />
-        <setting type="text" id="trakt.refresh_token" label="trakt.refresh_token" />
-        <setting type="number" id="trakt.expires" label="trakt.expires" />
+        <setting type="bool" label="Show Advanced Info" id="trakt.bts" default="false" />
+        <setting type="text" id="trakt.access_token" label="Trakt Access Token" enable="false" visible="eq(-1,True)" />
+        <setting type="text" id="trakt.refresh_token" label="Trakt Refresh Token" enable="false" visible="eq(-2,True)" />
+        <setting type="number" id="trakt.expires" label="Trakt Token Expiration" enable="false" visible="eq(-3,True)" />
     </category>
 </settings>
