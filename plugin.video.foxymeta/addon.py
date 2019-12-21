@@ -179,8 +179,8 @@ def root():
 def authenticate_trakt():
     init = trakt.authenticate()
     dialog = xbmcgui.DialogProgress()
-    dialog.create('Enter code at: {}'.format(init['verification_url']),
-                  init['user_code'])
+    dialog.create('FoxyMeta: Authorize Trakt', 'Enter the following code at: {}'.format(init['verification_url']),
+                  '\n{}'.format(init['user_code']))
     expires = time.time() + init['expires_in']
     while True:
         time.sleep(init['interval'])
@@ -191,13 +191,31 @@ def authenticate_trakt():
             pct_timeout = 100 - int(abs(pct_timeout))
             if pct_timeout >= 100 or dialog.iscanceled():
                 dialog.close()
-                xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Auth failed')
+                xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Authorization Failed')
                 return
             dialog.update(int(pct_timeout))
         else:
             dialog.close()
             save_trakt_auth(token)
+            xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Authorization Succeeded')
             return
+            
+
+@router.route('/revoke_trakt')
+def revoke_trakt():
+    dialog = xbmcgui.Dialog()
+    choice = dialog.yesno('FoxyMeta: Revoke Trakt', 'Are you sure you want to revoke authorization with Trakt.tv?')
+    
+    if not choice:
+        return
+        
+    result = trakt.revoke(router.addon.getSettingString('trakt.access_token'))
+    
+    if result.status_code == 200:
+        router.addon.setSettingString('trakt.access_token', '')
+        router.addon.setSettingString('trakt.refresh_token', '')
+        router.addon.setSettingInt('trakt.expires', 0)
+        xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Authorization Revoked')
 
 
 def save_trakt_auth(response):

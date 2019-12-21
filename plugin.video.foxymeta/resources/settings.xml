@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="Lists">
+    <category label="General">
+        <setting type="action" id="trakt.auth" label="Authorize Trakt" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/auth_trakt)" />
+        <setting type="action" id="trakt.revoke" label="Revoke Trakt" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/revoke_trakt)" />
         <setting type="labelenum" id="list.time.period" label="Time period for 'recently' lists" values="Weekly|Monthly|Yearly|All" default="Weekly" />
     </category>
     <category label="BTS">
