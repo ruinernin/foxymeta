@@ -249,6 +249,7 @@ def revoke_trakt():
     if result.status_code == 200:
         router.addon.setSettingString('trakt.access_token', '')
         router.addon.setSettingString('trakt.refresh_token', '')
+        router.addon.setSettingString('trakt.username', '')
         router.addon.setSettingInt('trakt.expires', 0)
         xbmcgui.Dialog().notification('FoxyMeta', 'Trakt Authorization Revoked')
 
@@ -260,6 +261,7 @@ def save_trakt_auth(response):
                                   response['refresh_token'])
     expires = response['created_at'] + response['expires_in']
     router.addon.setSettingInt('trakt.expires', expires)
+    router.addon.setSettingString('trakt.username', trakt.get_username())
 
 
 def foxy_movie_uri(_id, src='imdb'):

@@ -63,6 +63,10 @@ def revoke(token):
                            })
     return result
         
+        
+def get_username():
+    result = get('users/me')
+    return result['username']
 
 def get(path, auth_token=None, **params):
     headers = {
