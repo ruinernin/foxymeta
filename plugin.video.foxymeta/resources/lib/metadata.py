@@ -195,7 +195,7 @@ def tmdb_movie(tmdb_id):
 @router.cache
 def tmdb_poster(tmdb_id, resolution='w780'):
     movie = tmdb_movie(tmdb_id)
-    poster_path = movie['poster_path']
+    poster_path = movie.get('poster_path', '')
     return '{}/{}{}'.format(tmdb.IMAGE_URI,
                             resolution,
                             poster_path)
@@ -204,7 +204,7 @@ def tmdb_poster(tmdb_id, resolution='w780'):
 @router.cache
 def tmdb_backdrop(tmdb_id, resolution='w1280'):
     movie = tmdb_movie(tmdb_id)
-    backdrop_path = movie['backdrop_path']
+    backdrop_path = movie.get('backdrop_path', '')
     return '{}/{}{}'.format(tmdb.IMAGE_URI,
                             resolution,
                             backdrop_path)
