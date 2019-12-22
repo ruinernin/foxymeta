@@ -254,14 +254,14 @@ def revoke_trakt():
 
 
 def save_trakt_auth(response):
+    username = trakt.get('users/me', response['access_token'])['username']
     router.addon.setSettingString('trakt.access_token',
                                   response['access_token'])
     router.addon.setSettingString('trakt.refresh_token',
                                   response['refresh_token'])
     expires = response['created_at'] + response['expires_in']
     router.addon.setSettingInt('trakt.expires', expires)
-    router.addon.setSettingString('trakt.username',
-                                  trakt.get_username(response['access_token']))
+    router.addon.setSettingString('trakt.username', username)
 
 
 def foxy_movie_uri(_id, src='imdb'):

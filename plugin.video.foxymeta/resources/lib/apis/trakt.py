@@ -64,10 +64,6 @@ def revoke(token):
     return result
 
 
-def get_username(token):
-    result = get('users/me', auth_token=token)
-    return result['username']
-
 def get(path, auth_token=None, **params):
     headers = {
         'trakt-api-version': '2',
