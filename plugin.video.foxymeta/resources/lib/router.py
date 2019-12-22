@@ -4,6 +4,7 @@ except ImportError:
     from urllib import urlencode
     from urlparse import urlparse, parse_qsl
 import hashlib
+import inspect
 import json
 import os
 import os.path
@@ -83,10 +84,12 @@ class Router(object):
 
     def cache(self, func):
         def wrapper(*args, **kwargs):
-            cached = self.cache_get(func.__name__, *args, **kwargs)
+            cache_name = '{}.{}'.format(inspect.getmodule(func).__name__,
+                                        func.__name__)
+            cached = self.cache_get(cache_name, *args, **kwargs)
             if cached is None:
                 result = func(*args, **kwargs)
-                self.cache_set(func.__name__, result, *args, **kwargs)
+                self.cache_set(cache_name, result, *args, **kwargs)
                 return result
             return cached
         return wrapper
