@@ -180,9 +180,12 @@ def tmdb_trending(media_type='movie', page=1):
     for item in result['results']:
         li = metadata.movie_listitem(tmdb_data=item)
         li.setProperty('IsPlayable', 'true')
-        xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_movie_uri(item['id'], src='tmdb'),
-                                    li, False)
+        try:
+            xbmcplugin.addDirectoryItem(router.handle,
+                                        foxy_movie_uri(item['id'], src='tmdb'),
+                                        li, False)
+        except tmdb.NotFound:
+            pass
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(tmdb_trending,
                                                  page=int(page)+1),
@@ -194,5 +197,9 @@ def tmdb_trending(media_type='movie', page=1):
 def foxy_movie_uri(_id, src='imdb'):
     base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
     if src == 'tmdb':
-        _id = tmdb.get('/movie/{}/external_ids'.format(_id))['imdb_id']
+        res = tmdb.get('/movie/{}/external_ids'.format(_id))
+        try:
+            _id = tmdb.get('/movie/{}/external_ids'.format(_id))['imdb_id']
+        except tmdb.NotFound:
+            raise
     return base_uri + urllib.urlencode({'imdb': _id})
