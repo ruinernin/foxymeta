@@ -33,12 +33,13 @@ def root():
 
 def ui_trakt_list_movies(func, period=False):
     def wrapper(page=1):
+        _list = func()
+        if not _list:
+            _list = func.__name__
         if period:
-            _list = '{}/{}'.format(func.__name__,
+            _list = '{}/{}'.format(_list,
                                    router.addon.getSettingString(
                                        'list.time.period').lower())
-        else:
-            _list = func.__name__
         for movie in metadata.trakt_movies(_list=_list, page=page):
             li = metadata.movie_listitem(trakt_data=movie)
             li.setProperty('IsPlayable', 'true')
@@ -101,19 +102,10 @@ def boxoffice(page=1):
 
 
 @router.route('/movies/trakt/updates')
+@ui_trakt_list_movies
 def updates(page=1):
     start_date = time.strftime('%Y-%m-%d', time.gmtime())
-    _list = 'updates/{}'.format(start_date)
-    for movie in metadata.trakt_movies(_list=_list, page=page):
-        li = metadata.movie_listitem(trakt_data=movie)
-        xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_movie_uri(movie['ids']['imdb']),
-                                    li, False)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(updates, page=int(page)+1),
-                                xbmcgui.ListItem('Next'),
-                                True)
-    xbmcplugin.endOfDirectory(router.handle)
+    return 'updates/{}'.format(start_date)
 
 
 @router.route('/movies/trakt/collection')
