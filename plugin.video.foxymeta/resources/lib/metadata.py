@@ -216,7 +216,7 @@ def tmdb_movie(tmdb_id):
     return tmdb.get('/movie/{}'.format(tmdb_id))
 
 
-@router.cache
+@router.cache()
 def tmdb_poster(tmdb_id, resolution='w780'):
     movie = tmdb_movie(tmdb_id)
     poster_path = movie['poster_path']
@@ -225,7 +225,7 @@ def tmdb_poster(tmdb_id, resolution='w780'):
                             poster_path)
 
 
-@router.cache
+@router.cache()
 def tmdb_backdrop(tmdb_id, resolution='w1280'):
     movie = tmdb_movie(tmdb_id)
     backdrop_path = movie['backdrop_path']
@@ -234,6 +234,7 @@ def tmdb_backdrop(tmdb_id, resolution='w1280'):
                             backdrop_path)
 
 
+@router.cache(ttl=300)
 def tmdb_trending(page=1, media_type='movie', time_window='week'):
     path = '/trending/{}/{}'.format(media_type, time_window)
     return tmdb.get(path, page=page)

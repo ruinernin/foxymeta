@@ -9,6 +9,7 @@ import json
 import os
 import os.path
 import sys
+import time
 
 import xbmc
 import xbmcaddon
@@ -75,24 +76,39 @@ class Router(object):
             if not self.load_cache(name):
                 return None
         _hash = self.cache_hash(*args, **kwargs)
-        return self._cache[name].get(_hash)
+        cached = self._cache[name].get(_hash)
+        if cached:
+            # Remove excaption handling for old format later
+            try:
+                expire, data = cached
+            except ValueError:
+                expire = 0
+            if time.time() > expire:
+                del self._cache[name][_hash]
+                self.cache_keys_updated.add(name)
+                return None
+            return data
+        return None
 
-    def cache_set(self, name, val, *args, **kwargs):
+    def cache_set(self, name, val, ttl, *args, **kwargs):
         _hash = self.cache_hash(*args, **kwargs)
-        self._cache.setdefault(name, dict())[_hash] = val
+        expire = int(time.time() + ttl)
+        self._cache.setdefault(name, dict())[_hash] = (expire, val)
         self.cache_keys_updated.add(name)
 
-    def cache(self, func):
-        def wrapper(*args, **kwargs):
-            cache_name = '{}.{}'.format(inspect.getmodule(func).__name__,
-                                        func.__name__)
-            cached = self.cache_get(cache_name, *args, **kwargs)
-            if cached is None:
-                result = func(*args, **kwargs)
-                self.cache_set(cache_name, result, *args, **kwargs)
-                return result
-            return cached
-        return wrapper
+    def cache(self, ttl=86400):
+        def outer(func):
+            def wrapper(*args, **kwargs):
+                cache_name = '{}.{}'.format(inspect.getmodule(func).__name__,
+                                            func.__name__)
+                cached = self.cache_get(cache_name, *args, **kwargs)
+                if cached is None:
+                    result = func(*args, **kwargs)
+                    self.cache_set(cache_name, result, ttl, *args, **kwargs)
+                    return result
+                return cached
+            return wrapper
+        return outer
 
     def route(self, path):
         path = path.lstrip('/')

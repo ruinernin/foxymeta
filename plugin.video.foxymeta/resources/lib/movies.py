@@ -186,6 +186,7 @@ def tmdb_trending(media_type='movie', page=1):
     xbmcplugin.endOfDirectory(router.handle)
 
 
+@router.cache()
 def foxy_movie_uri(_id, src='imdb'):
     base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
     if src == 'tmdb':
