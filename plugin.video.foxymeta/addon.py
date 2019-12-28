@@ -6,32 +6,9 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-from resources.lib import metadata, movies
+from resources.lib import metadata, movies, tv
 from resources.lib.apis import tmdb, trakt
 from resources.lib.router import router
-
-
-
-@router.route('/tv/trakt/popular')
-def tv_popular(page=1):
-    for show in metadata.trakt_shows(page=page):
-        li = xbmcgui.ListItem(show['title'])
-        xbmcplugin.addDirectoryItem(router.handle,
-                                    '',
-                                    li,
-                                    False)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(tv_popular,
-                                                 page=int(page)+1),
-                                xbmcgui.ListItem('Next'),
-                                True)
-    xbmcplugin.endOfDirectory(router.handle)
-
-
-@router.route('/app/tv')
-def tv():
-    router.gui_dirlist([(tv_popular, 'Popular TV')],
-                       dirs=True)
 
 
 @router.route('/')
@@ -39,6 +16,10 @@ def root():
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(movies.root),
                                 xbmcgui.ListItem('Movies'),
+                                True)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(tv.root),
+                                xbmcgui.ListItem('TV'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(authenticate_trakt),

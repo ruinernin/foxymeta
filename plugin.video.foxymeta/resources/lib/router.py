@@ -8,6 +8,7 @@ import inspect
 import json
 import os
 import os.path
+import random
 import sys
 import time
 
@@ -96,15 +97,23 @@ class Router(object):
         self._cache.setdefault(name, dict())[_hash] = (expire, val)
         self.cache_keys_updated.add(name)
 
-    def cache(self, ttl=86400):
+    def cache(self, ttl=None):
+        # If no ttl is provided assume "indefinite" which is three days plus
+        # a random amount of time up to three days. So the cache is
+        # periodically refreshed but all caches are not invalid at the same
+        # time.
         def outer(func):
             def wrapper(*args, **kwargs):
+                if ttl is None:
+                    _ttl = (86400 * 3) + int(random.random() * 86400 * 3)
+                else:
+                    _ttl = ttl
                 cache_name = '{}.{}'.format(inspect.getmodule(func).__name__,
                                             func.__name__)
                 cached = self.cache_get(cache_name, *args, **kwargs)
                 if cached is None:
                     result = func(*args, **kwargs)
-                    self.cache_set(cache_name, result, ttl, *args, **kwargs)
+                    self.cache_set(cache_name, result, _ttl, *args, **kwargs)
                     return result
                 return cached
             return wrapper

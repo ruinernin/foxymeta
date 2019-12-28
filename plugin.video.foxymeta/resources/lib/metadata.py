@@ -23,10 +23,12 @@ TRAKT_TRANSLATION = (('title', 'title'),
                      ('network', 'studio'),)
 
 
-TVDB_EPISODE_TRANSLATION = (('episodeName', 'title'),
-                            ('imdbId', 'imdbnumber'),
-                            ('overview', 'plot'),
-                            ('firstAired', 'aired'),)
+TVDB_TRANSLATION = (('episodeName', 'title'),
+                    ('airedSeason', 'season'),
+                    ('airedEpisodeNumber', 'episode'),
+                    ('imdbId', 'imdbnumber'),
+                    ('overview', 'plot'),
+                    ('firstAired', 'aired'),)
 
 
 TMDB_TRANSLATION = (('title', 'title'),
@@ -50,6 +52,37 @@ def translate_info(translation, data):
         if value:
             info_label[info_label_key] = value
     return info_label
+
+
+def show_listitem(trakt_data=None):
+    info = {
+        'mediatype': 'tvshow',
+    }
+    art = {}
+    if trakt_data:
+        info.update(translate_info(TRAKT_TRANSLATION, trakt_data))
+        art['poster'] = tvdb_poster(trakt_data['ids']['tvdb'])
+        art['fanart'] = tvdb_fanart(trakt_data['ids']['tvdb'])
+    li = xbmcgui.ListItem(info['title'])
+    li.setInfo('video', info)
+    li.setArt(art)
+    return li
+
+
+def episode_listitem(trakt_data=None, tvdb_data=None):
+    info = {
+        'mediatype': 'episode',
+    }
+    art = {}
+    if trakt_data:
+        info.update(translate_info(TRAKT_TRANSLATION, trakt_data))
+    if tvdb_data:
+        info.update(translate_info(TVDB_TRANSLATION, tvdb_data))
+        art['thumb'] = 'https://artworks.thetvdb.com/banners/' + tvdb_data['filename']
+    li = xbmcgui.ListItem(info['title'])
+    li.setInfo('video', info)
+    li.setArt(art)
+    return li
 
 
 def movie_listitem(trakt_data=None, tmdb_data=None):
@@ -181,6 +214,7 @@ def trakt_list(user, list_id, _type):
     return result
 
 
+@router.memcache
 @tvdb.jwt_auth
 def tvdb_show(jwt, tvdb_seriesid):
     path = 'series/{}'.format(tvdb_seriesid)
@@ -234,7 +268,18 @@ def tmdb_backdrop(tmdb_id, resolution='w1280'):
                             backdrop_path)
 
 
-@router.cache(ttl=300)
 def tmdb_trending(page=1, media_type='movie', time_window='week'):
     path = '/trending/{}/{}'.format(media_type, time_window)
     return tmdb.get(path, page=page)
+
+
+@router.cache()
+def tvdb_poster(tvdbid):
+    path = tvdb_show(tvdbid)['poster']
+    return tvdb.IMAGE_URI + path
+
+
+@router.cache()
+def tvdb_fanart(tvdbid):
+    path = tvdb_show(tvdbid)['fanart']
+    return tvdb.IMAGE_URI + path

@@ -6,6 +6,7 @@ import requests
 
 API_KEY = 'AB2ED64C9BE51811'
 API_URL = 'https://api.thetvdb.com/'
+IMAGE_URI = 'https://artworks.thetvdb.com/banners/'
 HEADERS = (('Content-Type', 'application/json'),)
 
 def authenticate():
