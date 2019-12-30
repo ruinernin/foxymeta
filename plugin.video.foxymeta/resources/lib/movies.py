@@ -1,5 +1,5 @@
+import datetime
 import functools
-import time
 import urllib
 
 import xbmcgui
@@ -23,7 +23,7 @@ def root():
                         (boxoffice, 'Box Office Top 10'),
                         (updates, 'Recently Updated Movies')],
                        dirs=True,  more=trakt_token)
-    if trakt_token != '':
+    if trakt_token:
         router.gui_dirlist([(collection, 'Collection'),
                             (personal_lists, 'Personal Lists'),
                             (liked_lists, 'Liked Lists')],
@@ -34,7 +34,7 @@ def root():
 def ui_trakt_list_movies(func, period=False):
     def wrapper(page=1):
         _list = func()
-        if not _list:
+        if _list is None:
             _list = func.__name__
         if period:
             _list = '{}/{}'.format(_list,
@@ -104,8 +104,8 @@ def boxoffice(page=1):
 @router.route('/movies/trakt/updates')
 @ui_trakt_list_movies
 def updates(page=1):
-    start_date = time.strftime('%Y-%m-%d', time.gmtime())
-    return 'updates/{}'.format(start_date)
+    yesterday = datetime.datetime.utcnow() - datetime.timedelta(1)
+    return 'updates/{}'.format(yesterday.strftime('%Y-%m-%d'))
 
 
 @router.route('/movies/trakt/collection')

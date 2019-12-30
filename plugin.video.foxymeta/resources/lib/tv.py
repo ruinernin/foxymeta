@@ -1,3 +1,4 @@
+import datetime
 import urllib
 
 from . import metadata
@@ -8,10 +9,24 @@ import xbmcplugin
 
 
 
+@router.route('/app/tv')
+def root():
+    router.gui_dirlist([(popular, 'Popular TV'),
+                        (trending, 'Trending TV'),
+                        (played, 'Most Played TV'),
+                        (watched, 'Most Watched TV'),
+                        (collected, 'Most Collected TV'),
+                        (updates, 'Recently Updated TV')],
+                       dirs=True)
+
+
 def ui_trakt_shows(func):
     def wrapper(page=1):
+        _list = func()
+        if _list is None:
+            _list = func.__name__
         xbmcplugin.setContent(router.handle, 'tvshows')
-        for show in metadata.trakt_shows(_list=func.__name__,
+        for show in metadata.trakt_shows(_list=_list,
                                          page=page):
             li = metadata.show_listitem(trakt_data=show)
             xbmcplugin.addDirectoryItem(router.handle,
@@ -59,6 +74,13 @@ def collected(page=1):
     pass
 
 
+@router.route('/tv/trakt/updates')
+@ui_trakt_shows
+def updates(page=1):
+    yesterday = datetime.datetime.utcnow() - datetime.timedelta(1)
+    return 'updates/{}'.format(yesterday.strftime('%Y-%m-%d'))
+
+
 @router.route('/tv/tvdb/show')
 def tv_show(tvdbid=None):
     xbmcplugin.setContent(router.handle, 'tvshows')
@@ -88,16 +110,6 @@ def tv_season(tvdbid=None, season=None):
                                     li,
                                     False)
     xbmcplugin.endOfDirectory(router.handle)
-
-
-@router.route('/app/tv')
-def root():
-    router.gui_dirlist([(popular, 'Popular TV'),
-                        (trending, 'Trending TV'),
-                        (watched, 'Most Watched TV'),
-                        (collected, 'Most Collected TV'),
-                        (played, 'Most Played TV')],
-                       dirs=True)
 
 
 def foxy_tv_uri(_id, season, episode):
