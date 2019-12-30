@@ -8,23 +8,55 @@ import xbmcplugin
 
 
 
-@router.route('/tv/trakt/popular')
-def tv_popular(page=1):
-    xbmcplugin.setContent(router.handle, 'tvshows')
-    for show in metadata.trakt_shows(page=page):
-        li = metadata.show_listitem(trakt_data=show)
+def ui_trakt_shows(func):
+    def wrapper(page=1):
+        xbmcplugin.setContent(router.handle, 'tvshows')
+        for show in metadata.trakt_shows(_list=func.__name__,
+                                         page=page):
+            li = metadata.show_listitem(trakt_data=show)
+            xbmcplugin.addDirectoryItem(router.handle,
+                                        router.build_url(
+                                            tv_show,
+                                            tvdbid=show['ids']['tvdb']),
+                                        li,
+                                        True)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    router.build_url(
-                                        tv_show,
-                                        tvdbid=show['ids']['tvdb']),
-                                    li,
+                                    router.build_url(globals()[func.__name__],
+                                                     page=int(page)+1),
+                                    xbmcgui.ListItem('Next'),
                                     True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(tv_popular,
-                                                 page=int(page)+1),
-                                xbmcgui.ListItem('Next'),
-                                True)
-    xbmcplugin.endOfDirectory(router.handle)
+        xbmcplugin.endOfDirectory(router.handle)
+    return wrapper
+
+
+@router.route('/tv/trakt/popular')
+@ui_trakt_shows
+def popular(page=1):
+    pass
+
+
+@router.route('/tv/trakt/trending')
+@ui_trakt_shows
+def trending(page=1):
+    pass
+
+
+@router.route('/tv/trakt/played')
+@ui_trakt_shows
+def played(page=1):
+    pass
+
+
+@router.route('/tv/trakt/watched')
+@ui_trakt_shows
+def watched(page=1):
+    pass
+
+
+@router.route('/tv/trakt/collected')
+@ui_trakt_shows
+def collected(page=1):
+    pass
 
 
 @router.route('/tv/tvdb/show')
@@ -60,7 +92,11 @@ def tv_season(tvdbid=None, season=None):
 
 @router.route('/app/tv')
 def root():
-    router.gui_dirlist([(tv_popular, 'Popular TV')],
+    router.gui_dirlist([(popular, 'Popular TV'),
+                        (trending, 'Trending TV'),
+                        (watched, 'Most Watched TV'),
+                        (collected, 'Most Collected TV'),
+                        (played, 'Most Played TV')],
                        dirs=True)
 
 
