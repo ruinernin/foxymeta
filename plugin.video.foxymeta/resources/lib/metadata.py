@@ -18,7 +18,7 @@ TRAKT_TRANSLATION = (('title', 'title'),
                      ('overview', 'plot'),
                      ('released', 'premiered'),
                      ('certification', 'mpaa'),
-                     ('genres', 'genres'),
+                     ('genres', 'genre'),
                      (('ids', 'imdb'), 'imdbnumber'),
                      ('network', 'studio'),)
 
@@ -50,6 +50,8 @@ def translate_info(translation, data):
             for subkey in data_key:
                 value = value.get(subkey, {})
         if value:
+            if info_label_key == 'genre':
+                value = [genre.capitalize() for genre in value]
             info_label[info_label_key] = value
     return info_label
 
