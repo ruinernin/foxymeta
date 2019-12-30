@@ -77,7 +77,8 @@ def revoke_trakt():
 
 
 def save_trakt_auth(response):
-    username = trakt.get('users/me', response['access_token'])['username']
+    username = trakt.get('users/me',
+                         auth_token=response['access_token'])['username']
     router.addon.setSettingString('trakt.access_token',
                                   response['access_token'])
     router.addon.setSettingString('trakt.refresh_token',
