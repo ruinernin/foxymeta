@@ -80,7 +80,7 @@ def episode_listitem(trakt_data=None, tvdb_data=None):
         info.update(translate_info(TRAKT_TRANSLATION, trakt_data))
     if tvdb_data:
         info.update(translate_info(TVDB_TRANSLATION, tvdb_data))
-        art['thumb'] = 'https://artworks.thetvdb.com/banners/' + tvdb_data['filename']
+        art['thumb'] = tvdb.IMAGE_URI + tvdb_data['filename']
     li = xbmcgui.ListItem(info['title'])
     li.setInfo('video', info)
     li.setArt(art)
