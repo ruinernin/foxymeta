@@ -30,6 +30,8 @@ class Router(object):
         self.handle = int(ADDON_HANDLE)
         self.cache_dir = xbmc.translatePath(
             'special://temp/{}'.format(self.id_))
+        self.addon_data_dir = xbmc.translatePath(
+            'special://userdata/addon_data/{}'.format(self.id_))
         try:
             os.makedirs(self.cache_dir)
         except os.error as e:

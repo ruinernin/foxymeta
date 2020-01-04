@@ -6,7 +6,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-from resources.lib import metadata, movies, tv
+from resources.lib import metadata, movies, tv, library
 from resources.lib.apis import tmdb, trakt
 from resources.lib.router import router
 
@@ -22,10 +22,24 @@ def root():
                                 xbmcgui.ListItem('TV'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(library.sync_movie_collection),
+                                xbmcgui.ListItem('Sync Movies'),
+                                False)
+    xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(open_library),
+                                xbmcgui.ListItem('Open Foxy Library'),
+                                False)
+    xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(authenticate_trakt),
                                 xbmcgui.ListItem('Auth Trakt'),
                                 False)
     xbmcplugin.endOfDirectory(router.handle)
+
+
+@router.route('/library')
+def open_library():
+    directory = router.addon_data_dir + '/Library'
+    xbmc.executebuiltin('ActivateWindow(10025,'+directory+', return)')
 
 
 @router.route('/auth_trakt')
