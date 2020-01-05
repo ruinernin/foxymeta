@@ -11,7 +11,8 @@ import xbmcplugin
 
 @router.route('/app/tv')
 def root():
-    router.gui_dirlist([(popular, 'Popular TV'),
+    router.gui_dirlist([(search, 'Search'),
+                        (popular, 'Popular TV'),
                         (trending, 'Trending TV'),
                         (played, 'Most Played TV'),
                         (watched, 'Most Watched TV'),
@@ -79,6 +80,23 @@ def collected(page=1):
 def updates(page=1):
     yesterday = datetime.datetime.utcnow() - datetime.timedelta(1)
     return 'updates/{}'.format(yesterday.strftime('%Y-%m-%d'))
+
+
+@router.route('/tv/trakt/search')
+def search(query=None):
+    if query is None:
+        dialog = xbmcgui.Dialog()
+        query = dialog.input('Search query:')
+    for item in metadata.trakt_search(_type='show', query=query):
+        show = item['show']
+        li = metadata.show_listitem(trakt_data=show)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    router.build_url(
+                                        tv_show,
+                                        tvdbid=show['ids']['tvdb']),
+                                    li,
+                                    True)
+    xbmcplugin.endOfDirectory(router.handle)
 
 
 @router.route('/tv/tvdb/show')

@@ -13,7 +13,8 @@ from .apis import tmdb, trakt
 @router.route('/movies')
 def root():
     trakt_token = router.addon.getSettingString('trakt.access_token')
-    router.gui_dirlist([(popular, 'Popular Movies'),
+    router.gui_dirlist([(search, 'Search'),
+                        (popular, 'Popular Movies'),
                         (trending, 'Trending Movies'),
                         (tmdb_trending, 'Trending Movies (TMDB)'),
                         (played, 'Most Played Movies'),
@@ -99,6 +100,21 @@ def anticipated(page=1):
 @ui_trakt_list_movies
 def boxoffice(page=1):
     pass
+
+
+@router.route('/movies/trakt/search')
+def search(query=None):
+    if query is None:
+        dialog = xbmcgui.Dialog()
+        query = dialog.input('Search query:')
+    for item in metadata.trakt_search(_type='movie', query=query):
+        movie = item['movie']
+        li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.endOfDirectory(router.handle)
 
 
 @router.route('/movies/trakt/updates')

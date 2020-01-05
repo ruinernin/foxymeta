@@ -127,6 +127,12 @@ def trakt_movie(imdbid):
     return result
 
 
+def trakt_search(_type='movie', query=None, page=1):
+    path = 'search/{}'.format(_type)
+    result = trakt.get(path, query=query, extended='full', page=1)
+    return result
+
+
 def trakt_movies(_list='popular', page=1):
     path = 'movies/{}'.format(_list)
     result = trakt.get(path, extended='full', page=page)
