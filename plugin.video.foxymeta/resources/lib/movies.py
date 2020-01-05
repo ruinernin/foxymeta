@@ -19,10 +19,7 @@ def root():
                         (tmdb_trending, 'Trending Movies (TMDB)'),
                         (played, 'Most Played Movies'),
                         (watched, 'Most Watched Movies'),
-                        (collected, 'Most Collected Movies'),
-                        (anticipated, 'Most Anticipated Movies'),
-                        (boxoffice, 'Box Office Top 10'),
-                        (updates, 'Recently Updated Movies')],
+                        (collected, 'Most Collected Movies')],
                        dirs=True,  more=trakt_token)
     if trakt_token:
         router.gui_dirlist([(recommended, 'Recommended Movies'),
