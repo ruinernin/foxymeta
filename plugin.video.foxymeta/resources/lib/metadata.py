@@ -115,7 +115,7 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
             pass
         try:
             art['fanart'] = tmdb_backdrop(tmdbid, resolution='w1280')
-        except KeyError:
+        except (KeyError, tmdb.NotFound):
             pass
         li.setArt(art)
     return li
