@@ -27,7 +27,6 @@ class Router(object):
         self.paths = {}
         self.addon = xbmcaddon.Addon()
         self.id_ = self.addon.getAddonInfo('id')
-        self.handle = int(ADDON_HANDLE)
         self.cache_dir = xbmc.translatePath(
             'special://temp/{}'.format(self.id_))
         self.addon_data_dir = xbmc.translatePath(
@@ -45,6 +44,10 @@ class Router(object):
         h_list = list(args)
         h_list.extend(sorted(kwargs.items()))
         return hashlib.md5(str(h_list)).hexdigest()
+
+    @property
+    def handle(self):
+        return int(sys.argv[1])
 
     def memcache(self, func):
         cache = {}
@@ -131,7 +134,7 @@ class Router(object):
         return wrapper
 
     def run(self):
-        full_path = ADDON_URL + ADDON_QS
+        full_path = ADDON_URL + sys.argv[2]
         parsed = urlparse(full_path)
         path = parsed.path.lstrip('/')
         kwargs = dict(parse_qsl(parsed.query))
