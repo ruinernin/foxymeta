@@ -53,6 +53,7 @@ workflows:
               ignore:
                 - repo
                 - devrepo
+                - betarepo
       - release:
           context: publish
           requires:
@@ -74,3 +75,14 @@ workflows:
                 - devrepo
                 - master
                 - repo
+                - betarepo
+      - release:
+          commit_branch: betarepo
+          overwrite: true
+          context: publish
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
