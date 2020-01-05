@@ -102,7 +102,7 @@ def search(query=None):
 @router.route('/tv/tvdb/show')
 def tv_show(tvdbid=None):
     xbmcplugin.setContent(router.handle, 'tvshows')
-    for season in sorted(metadata.tvdb_show(tvdbid)['airedSeasons']):
+    for season in sorted(metadata.tvdb_show(tvdbid)['airedSeasons'], key=int):
         if season == '0':
             continue
         li = xbmcgui.ListItem('Season ' + season)
