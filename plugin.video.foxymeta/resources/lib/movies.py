@@ -25,7 +25,8 @@ def root():
                         (updates, 'Recently Updated Movies')],
                        dirs=True,  more=trakt_token)
     if trakt_token:
-        router.gui_dirlist([(collection, 'Collection'),
+        router.gui_dirlist([(recommended, 'Recommended Movies'),
+                            (collection, 'Collection'),
                             (personal_lists, 'Personal Lists'),
                             (liked_lists, 'Liked Lists')],
                            dirs=True)
@@ -124,9 +125,20 @@ def updates(page=1):
     return 'updates/{}'.format(yesterday.strftime('%Y-%m-%d'))
 
 
+@router.route('/movies/trakt/recommended')
+def recommended():
+    for movie in metadata.trakt_recommended(_type='movies'):
+        li = metadata.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    li, False)
+    xbmcplugin.endOfDirectory(router.handle)
+
+
 @router.route('/movies/trakt/collection')
-def collection(_type='movies'):
-    for item in metadata.trakt_collection(_type=_type):
+def collection():
+    for item in metadata.trakt_collection(_type='movie'):
         movie = item['movie']
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
