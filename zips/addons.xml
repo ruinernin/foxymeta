@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<addons><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.7">
+<addons><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.6">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -7,7 +7,7 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.21">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.22">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -24,7 +24,7 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.4">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.5">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -32,7 +32,7 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.5">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.8">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -48,7 +48,7 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.12">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.13">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -56,7 +56,39 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.19">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.7">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.9">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.14">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.3">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.21">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -65,7 +97,7 @@
         <provides>video</provides>
     </extension>
     <reuselanguageinvoker>true</reuselanguageinvoker>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.8">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.17">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -73,23 +105,8 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.15">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.2">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.6">
+    <reuselanguageinvoker>true</reuselanguageinvoker>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.4">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -106,47 +123,6 @@
         <provides>video</provides>
     </extension>
     <reuselanguageinvoker>true</reuselanguageinvoker>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.3">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.14">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.17">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
-    <reuselanguageinvoker>true</reuselanguageinvoker>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.0">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.9">
-    <requires>
-        <import addon="xbmc.python" version="2.25.0" />
-        <import addon="script.module.requests" version="2.22.0" />
-    </requires>
-    <extension library="addon.py" point="xbmc.python.pluginsource">
-        <provides>video</provides>
-    </extension>
 </addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.10">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
@@ -155,7 +131,7 @@
     <extension library="addon.py" point="xbmc.python.pluginsource">
         <provides>video</provides>
     </extension>
-</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.13">
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.12">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
         <import addon="script.module.requests" version="2.22.0" />
@@ -172,6 +148,39 @@
         <provides>video</provides>
     </extension>
     <reuselanguageinvoker>true</reuselanguageinvoker>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.19">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+    <reuselanguageinvoker>true</reuselanguageinvoker>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.2">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.15">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+</addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.0">
+    <requires>
+        <import addon="xbmc.python" version="2.25.0" />
+        <import addon="script.module.requests" version="2.22.0" />
+    </requires>
+    <extension library="addon.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
 </addon><addon id="plugin.video.foxymeta" name="FoxyMeta" provider-name="ruinernin" version="0.1.16">
     <requires>
         <import addon="xbmc.python" version="2.25.0" />
