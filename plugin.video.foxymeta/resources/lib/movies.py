@@ -138,7 +138,7 @@ def recommended():
 
 @router.route('/movies/trakt/collection')
 def collection():
-    for item in metadata.trakt_collection(_type='movie'):
+    for item in metadata.trakt_collection(_type='movies'):
         movie = item['movie']
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
