@@ -9,7 +9,7 @@ import xbmcplugin
 
 
 
-@router.route('/app/tv')
+@router.route('/tv')
 def root():
     router.gui_dirlist([(search, 'Search'),
                         (popular, 'Popular TV'),
