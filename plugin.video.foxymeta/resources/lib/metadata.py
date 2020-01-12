@@ -216,9 +216,12 @@ def trakt_liked_lists(page=1):
     return result
 
 
-def trakt_collection(_type='movies'):
+def trakt_collection(_type='movies', extended=False):
     path = '/sync/collection/{}'.format(_type)
-    result = trakt.get(path)
+    if extended:
+        result = trakt.get(path, extended='full')
+    else:
+        result = trakt.get(path)
     return result
 
 
