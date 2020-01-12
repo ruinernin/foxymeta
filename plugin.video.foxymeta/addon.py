@@ -26,6 +26,10 @@ def root():
                                 xbmcgui.ListItem('Sync Movies'),
                                 False)
     xbmcplugin.addDirectoryItem(router.handle,
+                                router.build_url(library.sync_show_collection),
+                                xbmcgui.ListItem('Sync Shows'),
+                                False)
+    xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(open_library),
                                 xbmcgui.ListItem('Open Foxy Library'),
                                 False)
