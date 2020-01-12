@@ -44,7 +44,7 @@ def create_show(tvdbid):
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
         return
-    with open('{}/{}.nfo'.format(show_dir, tvdbid), 'w') as nfo:
+    with open('{}/tvshow.nfo'.format(show_dir), 'w') as nfo:
         nfo.write(tvdb_nfo(tvdbid))
 
 
