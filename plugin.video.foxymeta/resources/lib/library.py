@@ -102,7 +102,7 @@ def sync_show_collection():
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding TV Shows to Foxy Library')
     shows = metadata.trakt_collection(_type='shows')
-    for show in shows:
+    for i, show in enumerate(shows):
         tvdbid = show['show']['ids']['tvdb']
         name = show['show']['title']
         create_show(tvdbid)
@@ -112,5 +112,6 @@ def sync_show_collection():
             for episode in metadata.tvdb_season(tvdbid, season):
                 create_episode(tvdbid, name, season,
                                episode['airedEpisodeNumber'])
+        progress.update(int((float(i) / len(shows)) * 100))
     progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
