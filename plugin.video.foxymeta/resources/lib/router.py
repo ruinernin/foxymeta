@@ -19,7 +19,7 @@ import xbmcplugin
 
 
 
-ADDON_URL, ADDON_HANDLE, ADDON_QS = sys.argv[:3]
+ADDON_URL = sys.argv[0]
 
 
 class Router(object):

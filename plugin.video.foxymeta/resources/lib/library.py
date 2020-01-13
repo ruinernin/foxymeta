@@ -80,7 +80,7 @@ def library_imdbids():
 
 @router.route('/library/sync/movies')
 def sync_movie_collection(refresh=False):
-    progress = xbmcgui.DialogProgress()
+    progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Movies to Foxy Library')
     if refresh:
         clean_movies()
@@ -97,7 +97,7 @@ def sync_movie_collection(refresh=False):
 
 @router.route('/library/sync/tv')
 def sync_show_collection():
-    progress = xbmcgui.DialogProgress()
+    progress = xbmcgui.DialogProgressBG()
     progress.create('Adding TV Shows to Foxy Library')
     shows = metadata.trakt_collection(_type='shows')
     for show in shows:
@@ -111,3 +111,4 @@ def sync_show_collection():
                 create_episode(tvdbid, name, season,
                                episode['airedEpisodeNumber'])
     progress.close()
+    xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
