@@ -3,10 +3,11 @@ import os
 
 import xbmcgui
 
+from . import jsonrpc
 from . import metadata
 from . import movies
-from .router import router
 from . import tv
+from .router import router
 
 
 
@@ -61,13 +62,22 @@ def create_episode(tvdbid, name, season, episode):
         strm.write(tv.foxy_tv_uri(tvdbid, season, episode))
 
 
+def library_imdbids():
+    """Return a list of imdbids existing in library."""
+    result = jsonrpc.get_movies(properties=['imdbnumber'])
+    return [movie['imdbnumber'] for movie in result.get('movies', list())]
+
+
 @router.route('/library/sync/movies')
 def sync_movie_collection():
     progress = xbmcgui.DialogProgress()
     progress.create('Adding Movies to Foxy Library')
     movies = metadata.trakt_collection(_type='movies')
+    in_library = library_imdbids()
     for movie in movies:
         imdbid = movie['movie']['ids']['imdb']
+        if imdbid in in_library:
+            continue
         create_movie(imdbid)
     progress.close()
 
