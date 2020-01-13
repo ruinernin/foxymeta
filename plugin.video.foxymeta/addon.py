@@ -22,7 +22,8 @@ def root():
                                 xbmcgui.ListItem('TV'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(library.sync_movie_collection),
+                                router.build_url(library.sync_movie_collection,
+                                                 refresh=True),
                                 xbmcgui.ListItem('Sync Movies'),
                                 False)
     xbmcplugin.addDirectoryItem(router.handle,

@@ -1,6 +1,8 @@
 import errno
 import os
+import shutil
 
+import xbmc
 import xbmcgui
 
 from . import jsonrpc
@@ -41,6 +43,14 @@ def create_movie(imdbid):
         strm.write(movies.foxy_movie_uri(imdbid))
 
 
+def clean_movies():
+    """Remove all Movies."""
+    movies_dir = '{}/Library/Movies/'.format(router.addon_data_dir)
+    for movie in os.listdir(movies_dir):
+        shutil.rmtree(movies_dir + movie)
+    xbmc.executebuiltin('CleanLibrary(video)', wait=True)
+
+
 def create_show(tvdbid):
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
@@ -69,9 +79,11 @@ def library_imdbids():
 
 
 @router.route('/library/sync/movies')
-def sync_movie_collection():
+def sync_movie_collection(refresh=False):
     progress = xbmcgui.DialogProgress()
     progress.create('Adding Movies to Foxy Library')
+    if refresh:
+        clean_movies()
     movies = metadata.trakt_collection(_type='movies')
     in_library = library_imdbids()
     for movie in movies:
@@ -80,6 +92,7 @@ def sync_movie_collection():
             continue
         create_movie(imdbid)
     progress.close()
+    xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 
 
 @router.route('/library/sync/tv')
