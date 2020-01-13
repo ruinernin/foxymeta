@@ -9,3 +9,5 @@
     </extension>
     <reuselanguageinvoker>true</reuselanguageinvoker>
 </addon>
+extension point="xbmc.service" library="service.py" />
+</addon>
