@@ -115,6 +115,11 @@ def sync_movie_collection(refresh=False):
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
+    
+    router.addon.setSettingString('trakt.last_sync_movies',
+                            time.strftime('%Y-%m-%d %H:%M:%S',
+                                          time.localtime(time.time())))
+    
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 
 
@@ -155,4 +160,9 @@ def sync_show_collection(refresh=False):
     router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
                                int(time.time()))
     progress.close()
+    
+    router.addon.setSettingString('trakt.last_sync_shows',
+                            time.strftime('%Y-%m-%d %H:%M:%S',
+                                          time.localtime(time.time())))
+    
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
