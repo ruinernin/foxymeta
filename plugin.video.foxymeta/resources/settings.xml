@@ -19,11 +19,10 @@
         <setting type="bool" id="library.sync.traktcollection.movies" label="Sync Movies Collection on Startup" default="false" />
         <setting type="bool" id="library.sync.traktcollection.tv" label="Sync TV Shows Collection on Startup" default="false" />
         <setting type="lsep" label="Manual Force Sync (Delete and Rebuild)" />
-        <setting type="action" label="Force Sync Movies" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True" />
-        <setting type="action" label="Force Sync TV Shows" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True" />
+        <setting type="action" id="trakt.last_sync_movies" label="Sync Movies Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True)" />
+        <setting type="action" id="trakt.last_sync_shows" label="Sync TV Shows Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True)" />
         <setting type="number" id="library.sync.traktcollection.tv.lastupdate" visible="false" default="0" />
         <setting type="text" id="library.sync.traktcollection.tv.future_checks" visible="false" default="{}" />
         <setting type="number" id="apis.tvdb.jwt.epoch" visible="false" default="0" />
-        <setting type="text" id="apis.tvdb.jwt" visible="false" />
     </category>
 </settings>
