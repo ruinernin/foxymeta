@@ -46,6 +46,8 @@ def create_movie(imdbid):
 def clean_movies():
     """Remove all Movies."""
     movies_dir = '{}/Library/Movies/'.format(router.addon_data_dir)
+    if not os.path.exists(movies_dir):
+        return
     for movie in os.listdir(movies_dir):
         shutil.rmtree(movies_dir + movie)
     xbmc.executebuiltin('CleanLibrary(video)', wait=True)
