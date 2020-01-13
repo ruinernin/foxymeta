@@ -40,7 +40,7 @@ def ui_trakt_list_movies(func, period=False):
         if period:
             _list = '{}/{}'.format(_list,
                                    router.addon.getSettingString(
-                                       'list.time.period').lower())
+                                       'trakt.list_time_period').lower())
         for movie in metadata.trakt_movies(_list=_list, page=page):
             li = ui.movie_listitem(trakt_data=movie)
             xbmcplugin.addDirectoryItem(router.handle,
