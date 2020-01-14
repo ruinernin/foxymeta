@@ -77,9 +77,23 @@ def create_episode(tvdbid, name, season, episode):
 
 
 def library_imdbids():
-    """Return a list of imdbids existing in library."""
+    """Return a list of movie imdbids existing in library."""
     result = jsonrpc.get_movies(properties=['imdbnumber'])
     return [movie['imdbnumber'] for movie in result.get('movies', list())]
+
+
+def library_shows_tvdbid():
+    """Return a list of shows in library mapped by tvdbid to library id."""
+    result = jsonrpc.get_shows(properties=['uniqueid'])
+    return {show['uniqueid']['tvdb']: show['tvshowid']
+            for show in result['tvshows']}
+
+
+def library_episodes(tvshowid):
+    """Return a list of tuples of episodes that exist for tvshowid."""
+    result = jsonrpc.get_episodes(tvshowid, properties=['episode', 'season'])
+    return [(episode['season'], episode['episode'])
+            for episode in result['episodes']]
 
 
 @router.route('/library/sync/movies')
@@ -106,16 +120,23 @@ def sync_show_collection(refresh=False):
     if refresh:
         clean_library('TV')
     shows = metadata.trakt_collection(_type='shows')
+    in_library = library_shows_tvdbid()
     for i, show in enumerate(shows):
         tvdbid = show['show']['ids']['tvdb']
         name = show['show']['title']
         create_show(tvdbid)
+        try:
+            have_episodes = library_episodes(in_library['tvdbid'])
+        except KeyError:
+            have_episodes = ()
         for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
             if season == '0':
                 continue
             for episode in metadata.tvdb_season(tvdbid, season):
-                create_episode(tvdbid, name, season,
-                               episode['airedEpisodeNumber'])
+                ep_num = episode['airedEpisodeNumber']
+                if (int(season), int(ep_num)) in have_episodes:
+                    continue
+                create_episode(tvdbid, name, season, ep_num)
         progress.update(int((float(i) / len(shows)) * 100))
     progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)

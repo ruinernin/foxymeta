@@ -65,12 +65,14 @@ def get_episodes(tvshowid=None, properties=('showtitle',), **field_value):
     return rpc('VideoLibrary.GetEpisodes', **params)['result']
 
 
-def get_shows(**field_value):
+def get_shows(properties=(), **field_value):
     """Convenience function for `VideoLibrary.GetTVShows` method."""
     params = {
-        'filter': and_filters([is_filter(field, value)
-                               for field, value in field_value.items()]),
+        'properties': list(properties),
     }
+    if field_value:
+        params['filter'] = and_filters(
+            [is_filter(field, value) for field, value in field_value.items()])
     return rpc('VideoLibrary.GetTVShows', **params)['result']
 
 
