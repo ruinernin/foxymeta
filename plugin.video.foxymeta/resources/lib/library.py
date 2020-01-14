@@ -85,7 +85,7 @@ def library_imdbids():
 def library_shows_tvdbid():
     """Return a list of shows in library mapped by tvdbid to library id."""
     result = jsonrpc.get_shows(properties=['uniqueid'])
-    return {show['uniqueid']['tvdb']: show['tvshowid']
+    return {int(show['uniqueid']['tvdb']): show['tvshowid']
             for show in result['tvshows']}
 
 
