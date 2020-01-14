@@ -126,7 +126,7 @@ def sync_show_collection(refresh=False):
         name = show['show']['title']
         create_show(tvdbid)
         try:
-            have_episodes = library_episodes(in_library['tvdbid'])
+            have_episodes = library_episodes(in_library[tvdbid])
         except KeyError:
             have_episodes = ()
         for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
