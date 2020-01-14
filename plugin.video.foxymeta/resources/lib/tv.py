@@ -14,12 +14,12 @@ _trakt_access_token = router.addon.getSettingString('trakt.access_token')
 @router.route('/tv')
 def root():
     router.gui_dirlist([(search, 'Search'),
-                        (popular, 'Popular TV'),
-                        (trending, 'Trending TV'),
-                        (played, 'Most Played TV'),
-                        (watched, 'Most Watched TV'),
-                        (collected, 'Most Collected TV'),
-                        (updates, 'Recently Updated TV')],
+                        (popular, 'Popular'),
+                        (trending, 'Trending'),
+                        (played, 'Most Played'),
+                        (watched, 'Most Watched'),
+                        (collected, 'Most Collected'),
+                        (updates, 'Recently Updated')],
                        dirs=True, more=_trakt_access_token)
                        
     if _trakt_access_token:
