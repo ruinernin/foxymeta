@@ -11,6 +11,7 @@ from .router import router
 from .apis import tmdb
 from . import ui
 
+_trakt_access_token = router.addon.getSettingString('trakt.access_token')
 
 
 TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))

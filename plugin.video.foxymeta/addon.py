@@ -10,6 +10,7 @@ from resources.lib import metadata, movies, tv, library
 from resources.lib.apis import tmdb, trakt
 from resources.lib.router import router
 
+_trakt_access_token = router.addon.getSettingString('trakt.access_token')
 
 
 TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
