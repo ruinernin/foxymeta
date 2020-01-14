@@ -4,6 +4,7 @@
         <setting type="lsep" label="Authorization" />
         <setting type="action" id="trakt.username" label="Authorize Trakt" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/auth_trakt)" />
         <setting type="action" label="Revoke Trakt" subsetting="true" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/revoke_trakt)" visible="!eq(-1,)" />
+        <setting type="labelenum" id="trakt.list_time_period" label="Time period for 'Recently' lists" values="Weekly|Monthly|Yearly|All" default="Weekly" />
         <setting type="bool" label="Show Advanced Info" id="trakt.bts" default="false" />
         <setting type="text" id="trakt.access_token" subsetting="true" label="Trakt Access Token" enable="false" default="" visible="eq(-1,True)" />
         <setting type="text" id="trakt.refresh_token" subsetting="true" label="Trakt Refresh Token" enable="false" default="" visible="eq(-2,True)" />
@@ -14,7 +15,7 @@
     </category>
     
     <category label="Library">
-        <setting type="lsep" label="Automatic Sync of Trakt Collections" />
+        <setting type="lsep" label="Trakt Library Sync" />
         <setting type="bool" id="library.sync.traktcollection.movies" label="Sync Movies Collection on Startup" default="false" />
         <setting type="bool" id="library.sync.traktcollection.tv" label="Sync TV Shows Collection on Startup" default="false" />
         <setting type="lsep" label="Manual Force Sync (Delete and Rebuild)" />
