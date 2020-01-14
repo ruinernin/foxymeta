@@ -22,21 +22,8 @@ def root():
                                 xbmcgui.ListItem('TV'),
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(library.sync_movie_collection,
-                                                 refresh=True),
-                                xbmcgui.ListItem('Sync Movies'),
-                                False)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(library.sync_show_collection),
-                                xbmcgui.ListItem('Sync Shows'),
-                                False)
-    xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(open_library),
                                 xbmcgui.ListItem('Open Foxy Library'),
-                                False)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(authenticate_trakt),
-                                xbmcgui.ListItem('Auth Trakt'),
                                 False)
     xbmcplugin.endOfDirectory(router.handle)
 

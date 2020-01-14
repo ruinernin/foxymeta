@@ -43,13 +43,13 @@ def create_movie(imdbid):
         strm.write(movies.foxy_movie_uri(imdbid))
 
 
-def clean_movies():
-    """Remove all Movies."""
-    movies_dir = '{}/Library/Movies/'.format(router.addon_data_dir)
-    if not os.path.exists(movies_dir):
+def clean_library(_type):
+    """Remove all `_type` ('Movies', 'TV') library files."""
+    libdir = '{}/Library/{}/'.format(router.addon_data_dir, _type)
+    if not os.path.exists(libdir):
         return
-    for movie in os.listdir(movies_dir):
-        shutil.rmtree(movies_dir + movie)
+    for _dir in os.listdir(libdir):
+        shutil.rmtree(libdir + _dir)
     xbmc.executebuiltin('CleanLibrary(video)', wait=True)
 
 
@@ -70,6 +70,8 @@ def create_episode(tvdbid, name, season, episode):
                                                    name,
                                                    int(season),
                                                    int(episode))
+    if os.path.exists(ep_file):
+        return
     with open(ep_file, 'w') as strm:
         strm.write(tv.foxy_tv_uri(tvdbid, season, episode))
 
@@ -85,7 +87,7 @@ def sync_movie_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Movies to Foxy Library')
     if refresh:
-        clean_movies()
+        clean_library('Movies')
     movies = metadata.trakt_collection(_type='movies')
     in_library = library_imdbids()
     for movie in movies:
@@ -98,9 +100,11 @@ def sync_movie_collection(refresh=False):
 
 
 @router.route('/library/sync/tv')
-def sync_show_collection():
+def sync_show_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding TV Shows to Foxy Library')
+    if refresh:
+        clean_library('TV')
     shows = metadata.trakt_collection(_type='shows')
     for i, show in enumerate(shows):
         tvdbid = show['show']['ids']['tvdb']
