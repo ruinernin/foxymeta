@@ -104,11 +104,13 @@ def sync_movie_collection(refresh=False):
         clean_library('Movies')
     movies = metadata.trakt_collection(_type='movies')
     in_library = library_imdbids()
-    for movie in movies:
+    for i, movie in enumerate(movies):
         imdbid = movie['movie']['ids']['imdb']
         if imdbid in in_library:
             continue
         create_movie(imdbid)
+        if i % 10 == 0:
+            progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 
