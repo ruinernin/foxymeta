@@ -8,6 +8,7 @@ from .router import router
 import xbmcgui
 import xbmcplugin
 
+_trakt_access_token = router.addon.getSettingString('trakt.access_token')
 
 
 @router.route('/tv')
@@ -19,7 +20,14 @@ def root():
                         (watched, 'Most Watched TV'),
                         (collected, 'Most Collected TV'),
                         (updates, 'Recently Updated TV')],
-                       dirs=True)
+                       dirs=True, more=_trakt_access_token)
+                       
+    if _trakt_access_token:
+        router.gui_dirlist([(trakt, 'My TV Shows')], dirs=True)
+                       
+@router.route('/tv/trakt')
+def trakt():
+    pass
 
 
 def ui_trakt_shows(func):

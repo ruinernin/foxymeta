@@ -12,7 +12,6 @@ from . import metadata
 from .router import router
 
 
-
 def mkdir(path):
     try:
         os.makedirs(path)
