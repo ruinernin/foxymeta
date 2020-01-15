@@ -95,6 +95,7 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
     if trakt_data:
         info.update(translate_info(TRAKT_TRANSLATION, trakt_data))
         tmdbid = trakt_data['ids']['tmdb']
+        imdbid = trakt_data['ids']['imdb']
     if tmdb_data:
         info.update(translate_info(TMDB_TRANSLATION, tmdb_data))
         tmdbid = tmdb_data['id']
@@ -118,6 +119,12 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
         except (KeyError, tmdb.NotFound):
             pass
         li.setArt(art)
+    if imdbid:
+        import library
+        li.addContextMenuItems([('Add to FoxyMeta Library',
+                                 ('RunPlugin(plugin://plugin.video.foxymeta/'
+                                  'library/add/movie?imdbid={})')
+                                  .format(imdbid))])
     return li
 
 

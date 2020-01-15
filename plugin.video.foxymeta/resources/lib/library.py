@@ -33,6 +33,7 @@ def tvdb_nfo(tvdbid):
     return 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
 
 
+@router.route('/library/add/movie')
 def create_movie(imdbid):
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
