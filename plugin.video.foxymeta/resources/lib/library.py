@@ -125,6 +125,39 @@ def library_episodes(tvshowid):
             for episode in result['episodes']]
 
 
+@router.route('/library/sync/lists/choose')
+def choose_lists():
+    old_choices = router.addon.getSettingString('library.sync.chosen_lists').split(',')
+    lists = metadata.trakt_personal_lists()
+    liked = metadata.trakt_liked_lists()
+    lists.extend(liked)
+    slugs = []
+    names = []
+    preselect = []
+    chosen_slugs = []
+    
+    for list in lists:
+        import web_pdb; web_pdb.set_trace()
+        try:
+            slugs.append(list['ids']['slug'])
+            names.append(list['name'])
+            name = list['name']
+        except:
+            slugs.append(list['list']['ids']['slug'])
+            names.append(list['list']['name'])
+            name = list['list']['name']
+        
+        if name in old_choices:
+            preselect.append(names.index(name))
+    
+    choices = xbmcgui.Dialog().multiselect('Choose Lists to Sync', options=names,
+                                           preselect=preselect)
+    for index in choices:
+        chosen_slugs.append(slugs[index])
+    
+    router.addon.setSettingString('library.sync.chosen_lists', ','.join(chosen_slugs))
+
+
 @router.route('/library/sync/movies')
 def sync_movie_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
@@ -146,6 +179,31 @@ def sync_movie_collection(refresh=False):
     router.addon.setSettingString('trakt.last_sync_movies',
                             time.strftime('%Y-%m-%d %H:%M:%S',
                                           time.localtime(time.time())))
+    
+    xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
+    
+    
+@router.route('/library/sync/movies/lists')
+def sync_movie_lists(refresh=False):
+    progress = xbmcgui.DialogProgressBG()
+    progress.create('Adding Movies to Foxy Library')
+    if refresh:
+        clean_library('Movies')
+    lists = metadata.trakt_personal_lists()
+    liked = metadata.trakt_liked_lists()
+    lists.extend(liked)
+    in_library = library_imdbids()
+    for i, movie in enumerate(lists):
+        try:
+            imdbid = movie['movie']['ids']['imdb']
+        except:
+            pass
+        if imdbid in in_library:
+            continue
+        create_movie(imdbid)
+        if i % 10 == 0:
+            progress.update(int((float(i) / len(movies)) * 100))
+    progress.close()
     
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 

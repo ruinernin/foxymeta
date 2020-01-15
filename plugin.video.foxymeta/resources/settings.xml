@@ -18,6 +18,8 @@
         <setting type="lsep" label="Trakt Library Sync" />
         <setting type="bool" id="library.sync.traktcollection.movies" label="Sync Movies Collection on Startup" default="false" />
         <setting type="bool" id="library.sync.traktcollection.tv" label="Sync TV Shows Collection on Startup" default="false" />
+        <setting type="action" label="Choose Lists to Sync" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/lists/choose)" />
+        <setting type="text" id="library.sync.chosen_lists" label="Chosen lists to sync" visible="false" />
         <setting type="lsep" label="Manual Force Sync (Delete and Rebuild)" />
         <setting type="action" id="trakt.last_sync_movies" label="Sync Movies Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True)" />
         <setting type="action" id="trakt.last_sync_shows" label="Sync TV Shows Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True)" />
