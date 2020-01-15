@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.foxymeta" name="FoxyMeta" version="0.1.5" provider-name="ruinernin">
+<addon id="plugin.video.foxymeta" name="FoxyMeta" version="0.1.29" provider-name="ruinernin">
     <requires>
         <import addon="xbmc.python" version="2.25.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py">
         <provides>video</provides>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
     </extension>
+    <extension point="xbmc.service" library="service.py" />
 </addon>
-
