@@ -75,3 +75,18 @@ def get(path, auth_token=None, **params):
             'trakt-api-key': CLIENT_ID,
         })
     return requests.get(API_URL + path, headers=headers, params=params).json()
+
+
+def get_all(path, auth_token=None, **params):
+    headers = {
+        'trakt-api-version': '2',
+        'Content-Type': 'application/json',
+    }
+    if auth_token:
+        headers.update({
+            'Authorization': 'Bearer {}'.format(auth_token),
+            'trakt-api-key': CLIENT_ID,
+        })
+    headers = requests.head(API_URL + path, headers=headers, params=params)
+    for page in range(headers['X-Pagination-Page-Count']):
+        yield get(API_URL + path, page=page)

@@ -20,9 +20,12 @@ def trakt_movie(imdbid, extended='full'):
     return result
 
 
-def trakt_search(_type='movie', query=None, page=1):
+def trakt_search(_type='movie', query=None, page=1, all=False):
     path = 'search/{}'.format(_type)
-    result = trakt.get(path, query=query, extended='full', page=page)
+    if all:
+        result = list(trakt.get_all(path, query=query, extended='full'))
+    else:
+        result = trakt.get(path, query=query, extended='full', page=page)
     return result
 
 
@@ -32,9 +35,12 @@ def trakt_recommended(_type='movies'):
     return result
 
 
-def trakt_movies(_list='popular', page=1):
+def trakt_movies(_list='popular', page=1, all=False):
     path = 'movies/{}'.format(_list)
-    result = trakt.get(path, extended='full', page=page)
+    if all:
+        result = list(trakt.get_all(path, extended='full'))
+    else:
+        result = trakt.get(path, extended='full', page=page)
     final = []
     # Some calls return items nested amongst data we don't care about such as
     # played/collected/watched counts, strip it and have homogenous API.
@@ -46,9 +52,12 @@ def trakt_movies(_list='popular', page=1):
     return final
 
 
-def trakt_shows(_list='popular', page=1):
+def trakt_shows(_list='popular', page=1, all=False):
     path = 'shows/{}'.format(_list)
-    result = trakt.get(path, extended='full', page=page)
+    if all:
+        result = list(trakt.get_all(path, extended='full'))
+    else:
+        result = trakt.get(path, extended='full', page=page)
     final = []
     # Some calls return items nested amongst data we don't care about such as
     # played/collected/watched counts, strip it and have homogenous API.
@@ -103,9 +112,12 @@ def trakt_users_lists(user):
     return result
 
 
-def trakt_liked_lists(page=1):
+def trakt_liked_lists(page=1, all):
     path = '/users/likes/lists'
-    result = trakt.get(path, page=page)
+    if all:
+        result = list(trakt.get_all(path))
+    else:
+        result = trakt.get(path, page=page)
     return result
 
 
