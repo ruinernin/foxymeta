@@ -5,9 +5,9 @@ import shutil
 import xbmc
 import xbmcgui
 
+from . import player
 from . import jsonrpc
 from . import metadata
-from . import movies
 from . import tv
 from .router import router
 
@@ -40,7 +40,7 @@ def create_movie(imdbid):
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
         nfo.write(imdb_nfo(imdbid))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
-        strm.write(movies.foxy_movie_uri(imdbid))
+        strm.write(player.foxy_movie_uri(imdbid))
 
 
 def clean_library(_type):

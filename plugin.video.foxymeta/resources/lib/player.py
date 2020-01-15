@@ -22,6 +22,12 @@ def seren_movie_uri(traktid):
     return uri
 
 
+def foxy_movie_uri(imdbid):
+    base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
+    return base_uri + urllib.urlencode({'imdb': imdbid})
+
+
+
 def movie_uri(ids, src='trakt'):
     if src == 'tmdb':
         ids = metadata.tmdbid_to_traktids(ids)
@@ -29,5 +35,4 @@ def movie_uri(ids, src='trakt'):
     if player == 'seren':
         return seren_movie_uri(ids['trakt'])
     elif player == 'foxystreams':
-        base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
-        return base_uri + urllib.urlencode({'imdb': ids['imdb']})
+        return foxy_movie_uri(ids['imdb'])
