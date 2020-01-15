@@ -55,9 +55,9 @@ def imdb_nfo(imdbid):
 def tvdb_nfo(tvdbid):
     return 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
 
-
-def create_movie(ids):
-    imdbid = ids['imdb']
+    
+@router.route('/library/add/movie')
+def create_movie(imdbid):
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
         return
@@ -79,6 +79,8 @@ def clean_library(_type):
     xbmc.executebuiltin('CleanLibrary(video)', wait=True)
 
 
+    
+@router.route('/library/add/show')
 def create_show(tvdbid):
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
@@ -87,6 +89,7 @@ def create_show(tvdbid):
         nfo.write(tvdb_nfo(tvdbid))
 
 
+@router.route('/library/add/episode')
 def create_episode(tvdbid, name, season, episode):
     season_dir = '{}/Library/TV/{}/Season {}'.format(router.addon_data_dir,
                                                      tvdbid,
