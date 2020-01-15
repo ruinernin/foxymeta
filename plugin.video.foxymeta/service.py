@@ -9,7 +9,7 @@ from resources.lib.router import router
 def main():
     monitor = xbmc.Monitor()
     while not monitor.abortRequested():
-        if not router.addon.getSettingBool('trakt.access_token'):
+        if not router.addon.getSettingString('trakt.access_token'):
             continue
     
         if router.addon.getSettingBool('library.sync.traktcollection.movies'):
