@@ -121,9 +121,9 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
     return li
 
 
-def trakt_movie(imdbid):
+def trakt_movie(imdbid, extended='full'):
     path = 'movies/{}'.format(imdbid)
-    result = trakt.get(path, extended='full')
+    result = trakt.get(path, extended=extended)
     return result
 
 
@@ -300,3 +300,13 @@ def tvdb_poster(tvdbid):
 def tvdb_fanart(tvdbid):
     path = tvdb_show(tvdbid)['fanart']
     return tvdb.IMAGE_URI + path
+
+
+@router.cache()
+def tmdbid_to_traktids(tmdbid):
+    try:
+        imdbid = tmdb.get('/movie/{}/external_ids'.format(tmdbid))['imdb_id']
+    except tmdb.NotFound:
+        raise
+    else:
+        return trakt_movie(imdbid, extended=None)['ids']

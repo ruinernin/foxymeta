@@ -6,8 +6,9 @@ import xbmcgui
 import xbmcplugin
 
 from . import metadata
+from . import player
 from .router import router
-from .apis import tmdb, trakt
+from .apis import tmdb
 
 
 @router.route('/movies')
@@ -43,7 +44,7 @@ def ui_trakt_list_movies(func, period=False):
             li = metadata.movie_listitem(trakt_data=movie)
             li.setProperty('IsPlayable', 'true')
             xbmcplugin.addDirectoryItem(router.handle,
-                                        foxy_movie_uri(movie['ids']['imdb']),
+                                        player.movie_uri(movie['ids']),
                                         li, False)
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(globals()[func.__name__],
@@ -110,7 +111,7 @@ def search(query=None):
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    player.movie_uri(movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -128,7 +129,7 @@ def recommended():
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    player.movie_uri(movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -140,7 +141,7 @@ def collection():
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    player.movie_uri(movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -185,7 +186,7 @@ def trakt_list(user, list_id):
         })
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_movie_uri(movie['ids']['imdb']),
+                                    player.movie_uri(movie['ids']),
                                     li, False)
     xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)
@@ -199,7 +200,8 @@ def tmdb_trending(media_type='movie', page=1):
         li.setProperty('IsPlayable', 'true')
         try:
             xbmcplugin.addDirectoryItem(router.handle,
-                                        foxy_movie_uri(item['id'], src='tmdb'),
+                                        player.movie_uri(item['id'],
+                                                         src='tmdb'),
                                         li, False)
         except tmdb.NotFound:
             pass
@@ -209,15 +211,3 @@ def tmdb_trending(media_type='movie', page=1):
                                 xbmcgui.ListItem('Next'),
                                 True)
     xbmcplugin.endOfDirectory(router.handle)
-
-
-@router.cache()
-def foxy_movie_uri(_id, src='imdb'):
-    base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
-    if src == 'tmdb':
-        res = tmdb.get('/movie/{}/external_ids'.format(_id))
-        try:
-            _id = tmdb.get('/movie/{}/external_ids'.format(_id))['imdb_id']
-        except tmdb.NotFound:
-            raise
-    return base_uri + urllib.urlencode({'imdb': _id})

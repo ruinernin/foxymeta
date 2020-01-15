@@ -9,6 +9,9 @@
         <setting type="text" id="trakt.refresh_token" label="Trakt Refresh Token" enable="false" visible="eq(-2,True)" />
         <setting type="number" id="trakt.expires" label="Trakt Token Expiration" enable="false" visible="eq(-3,True)" />
     </category>
+    <category label="Players">
+        <setting type="labelenum" id="player.movies.external" label="External Movie Player" values="FoxyStreams|Seren" default="FoxyStreams" />
+    </category>
     <category label="Library">
         <setting type="lsep" label="Automatic Sync of Trakt Collections" />
         <setting type="bool" id="library.sync.traktcollection.movies" label="Movies" default="false" />
