@@ -33,14 +33,15 @@ def tvdb_nfo(tvdbid):
     return 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
 
 
-def create_movie(imdbid):
+def create_movie(ids):
+    imdbid = ids['imdb']
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
         nfo.write(imdb_nfo(imdbid))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
-        strm.write(player.foxy_movie_uri(imdbid))
+        strm.write(player.library_movie_uri(ids))
 
 
 def clean_library(_type):
@@ -108,7 +109,7 @@ def sync_movie_collection(refresh=False):
         imdbid = movie['movie']['ids']['imdb']
         if imdbid in in_library:
             continue
-        create_movie(imdbid)
+        create_movie(movie['movie']['ids'])
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()

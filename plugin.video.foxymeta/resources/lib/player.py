@@ -1,6 +1,10 @@
 import json
 import urllib
 
+import xbmc
+import xbmcgui
+import xbmcplugin
+
 from . import metadata
 from .router import router
 
@@ -36,3 +40,17 @@ def movie_uri(ids, src='trakt'):
         return seren_movie_uri(ids['trakt'])
     elif player == 'foxystreams':
         return foxy_movie_uri(ids['imdb'])
+
+
+def library_movie_uri(ids):
+    return 'plugin://plugin.video.foxymeta/play/movie?' + urllib.urlencode(ids)
+
+
+@router.route('/play/movie')
+def play_movie(**ids):
+    player = router.addon.getSetting('player.movies.external').lower()
+    if player == 'foxystreams':
+        li = xbmcgui.ListItem(path=movie_uri(ids))
+        xbmcplugin.setResolvedUrl(router.handle, True, li)
+    else:
+        xbmc.executebuiltin('RunPlugin("{}")'.format(movie_uri(ids)))
