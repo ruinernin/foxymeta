@@ -12,6 +12,10 @@ from .apis import tvdb
 trakt.get = functools.partial(trakt.get,
                               auth_token=router.addon.getSettingString(
                                   'trakt.access_token'))
+                                  
+trakt.get_all = functools.partial(trakt.get_all,
+                              auth_token=router.addon.getSettingString(
+                                  'trakt.access_token'))
 
 
 def trakt_movie(imdbid, extended='full'):
@@ -107,13 +111,13 @@ def trakt_personal_lists():
 
 
 def trakt_users_lists(user):
-    path = '/users/{}/lists'.format(user)
+    path = 'users/{}/lists'.format(user)
     result = trakt.get(path)
     return result
 
 
-def trakt_liked_lists(page=1, all):
-    path = '/users/likes/lists'
+def trakt_liked_lists(page=1, all=False):
+    path = 'users/likes/lists'
     if all:
         result = list(trakt.get_all(path))
     else:
@@ -122,7 +126,7 @@ def trakt_liked_lists(page=1, all):
 
 
 def trakt_collection(_type='movies', extended=False):
-    path = '/sync/collection/{}'.format(_type)
+    path = 'sync/collection/{}'.format(_type)
     if extended:
         result = trakt.get(path, extended='full')
     else:
@@ -131,7 +135,7 @@ def trakt_collection(_type='movies', extended=False):
 
 
 def trakt_list(user, list_id, _type):
-    path = '/users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+    path = 'users/{}/lists/{}/items/{}'.format(user, list_id, _type)
     result = trakt.get(path, extended='full')
     return result
 

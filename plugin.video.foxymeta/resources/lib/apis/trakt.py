@@ -74,7 +74,9 @@ def get(path, auth_token=None, **params):
             'Authorization': 'Bearer {}'.format(auth_token),
             'trakt-api-key': CLIENT_ID,
         })
-    return requests.get(API_URL + path, headers=headers, params=params).json()
+    response = requests.get(API_URL + path, headers=headers, params=params)
+    
+    return response.json()
 
 
 def get_all(path, auth_token=None, **params):
@@ -87,6 +89,7 @@ def get_all(path, auth_token=None, **params):
             'Authorization': 'Bearer {}'.format(auth_token),
             'trakt-api-key': CLIENT_ID,
         })
-    headers = requests.head(API_URL + path, headers=headers, params=params)
-    for page in range(headers['X-Pagination-Page-Count']):
-        yield get(API_URL + path, page=page)
+    
+    response = requests.head(API_URL + path, headers=headers, params=params)
+    for page in range(int(response.headers['X-Pagination-Page-Count'])):
+        yield get(API_URL + path, auth_token=auth_token, page=page+1)

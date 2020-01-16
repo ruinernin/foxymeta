@@ -132,7 +132,7 @@ def library_episodes(tvshowid):
 def choose_lists():
     old_choices = router.addon.getSettingString('library.sync.chosen_lists').split(',')
     lists = metadata.trakt_personal_lists()
-    liked = metadata.trakt_liked_lists()
+    liked = metadata.trakt_liked_lists(all=True)
     lists.extend(liked)
     slugs = []
     names = []
@@ -140,7 +140,6 @@ def choose_lists():
     chosen_slugs = []
     
     for list in lists:
-        import web_pdb; web_pdb.set_trace()
         try:
             slugs.append(list['ids']['slug'])
             names.append(list['name'])
@@ -193,7 +192,7 @@ def sync_movie_lists(refresh=False):
     if refresh:
         clean_library('Movies')
     lists = metadata.trakt_personal_lists()
-    liked = metadata.trakt_liked_lists()
+    liked = metadata.trakt_liked_lists(all=True)
     lists.extend(liked)
     in_library = library_imdbids()
     for i, movie in enumerate(lists):
