@@ -10,6 +10,7 @@ from .router import router
 
 
 
+NATIVE = ('foxystreams',)
 SEREN_BASEURL = 'plugin://plugin.video.seren/'
 
 
@@ -42,15 +43,16 @@ def movie_uri(ids, src='trakt'):
         return foxy_movie_uri(ids['imdb'])
 
 
-def library_movie_uri(ids):
-    return 'plugin://plugin.video.foxymeta/play/movie?' + urllib.urlencode(ids)
-
-
 @router.route('/play/movie')
-def play_movie(**ids):
+def play_movie(get_metadata=True, **ids):
     player = router.addon.getSetting('player.movies.external').lower()
-    if player == 'foxystreams':
-        li = xbmcgui.ListItem(path=movie_uri(ids))
-        xbmcplugin.setResolvedUrl(router.handle, True, li)
-    else:
+    if player not in NATIVE:
         xbmc.executebuiltin('RunPlugin("{}")'.format(movie_uri(ids)))
+        return
+    if get_metadata:
+        movie_details = metadata.trakt_movie(ids['imdb'])
+        li = metadata.movie_listitem(trakt_data=movie_details)
+    else:
+        li = xbmcgui.ListItem()
+    li.setPath(movie_uri(ids))
+    xbmcplugin.setResolvedUrl(router.handle, True, li)

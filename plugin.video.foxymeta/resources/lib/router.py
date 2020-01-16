@@ -149,6 +149,9 @@ class Router(object):
         path = inverted[func]
         url = 'plugin://{}/{}'.format(self.id_, path)
         if kwargs:
+            for key in kwargs:
+                if not kwargs[key]:
+                    kwargs[key] = ''
             query = urlencode(kwargs)
             url += '?' + query
         return url

@@ -17,7 +17,7 @@
         <setting type="bool" id="library.sync.traktcollection.movies" label="Movies" default="false" />
         <setting type="bool" id="library.sync.traktcollection.tv" label="TV Shows" default="false" />
         <setting type="lsep" label="Manual Force Sync (Delete and rebuild)" />
-        <setting type="action" label="Movies" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True" />
-        <setting type="action" label="TV Shows" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True" />
+        <setting type="action" label="Movies" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True)" />
+        <setting type="action" label="TV Shows" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True)" />
     </category>
 </settings>

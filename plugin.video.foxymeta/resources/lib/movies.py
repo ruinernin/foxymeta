@@ -44,7 +44,8 @@ def ui_trakt_list_movies(func, period=False):
             li = metadata.movie_listitem(trakt_data=movie)
             li.setProperty('IsPlayable', 'true')
             xbmcplugin.addDirectoryItem(router.handle,
-                                        player.movie_uri(movie['ids']),
+                                        router.build_url(player.play_movie,
+                                                         **movie['ids']),
                                         li, False)
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(globals()[func.__name__],
@@ -111,7 +112,8 @@ def search(query=None):
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    player.movie_uri(movie['ids']),
+                                    router.build_url(player.play_movie,
+                                                     **movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -129,7 +131,8 @@ def recommended():
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    player.movie_uri(movie['ids']),
+                                    router.build_url(player.play_movie,
+                                                     **movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -141,7 +144,8 @@ def collection():
         li = metadata.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    player.movie_uri(movie['ids']),
+                                    router.build_url(player.play_movie,
+                                                     **movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -186,7 +190,8 @@ def trakt_list(user, list_id):
         })
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
-                                    player.movie_uri(movie['ids']),
+                                    router.build_url(player.play_movie,
+                                                     **movie['ids']),
                                     li, False)
     xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)

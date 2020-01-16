@@ -41,7 +41,9 @@ def create_movie(ids):
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
         nfo.write(imdb_nfo(imdbid))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
-        strm.write(player.library_movie_uri(ids))
+        strm.write(router.build_url(player.play_movie,
+                                    get_metadata=False,
+                                    **ids))
 
 
 def clean_library(_type):
