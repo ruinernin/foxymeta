@@ -120,7 +120,6 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
             pass
         li.setArt(art)
     if imdbid:
-        import library
         li.addContextMenuItems([('Add to FoxyMeta Library',
                                  ('RunPlugin(plugin://plugin.video.foxymeta/'
                                   'library/add/movie?imdbid={})')
