@@ -1,8 +1,8 @@
 import datetime
-import urllib
 
 from . import metadata
 from .router import router
+from . import ui
 
 import xbmcgui
 import xbmcplugin
@@ -29,7 +29,7 @@ def ui_trakt_shows(func):
         xbmcplugin.setContent(router.handle, 'tvshows')
         for show in metadata.trakt_shows(_list=_list,
                                          page=page):
-            li = metadata.show_listitem(trakt_data=show)
+            li = ui.show_listitem(trakt_data=show)
             xbmcplugin.addDirectoryItem(router.handle,
                                         router.build_url(
                                             tv_show,
@@ -89,7 +89,7 @@ def search(query=None):
         query = dialog.input('Search query:')
     for item in metadata.trakt_search(_type='show', query=query):
         show = item['show']
-        li = metadata.show_listitem(trakt_data=show)
+        li = ui.show_listitem(trakt_data=show)
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(
                                         tv_show,
@@ -120,7 +120,7 @@ def tv_show(tvdbid=None):
 def tv_season(tvdbid=None, season=None):
     xbmcplugin.setContent(router.handle, 'episodes')
     for episode in metadata.tvdb_season(tvdbid, season):
-        li = metadata.episode_listitem(tvdb_data=episode)
+        li = ui.episode_listitem(tvdb_data=episode)
         xbmcplugin.addDirectoryItem(router.handle,
                                     foxy_tv_uri(tvdbid,
                                                episode['airedSeason'],
@@ -128,13 +128,3 @@ def tv_season(tvdbid=None, season=None):
                                     li,
                                     False)
     xbmcplugin.endOfDirectory(router.handle)
-
-
-def foxy_tv_uri(_id, season, episode):
-    base_uri = 'plugin://plugin.video.foxystreams/play/episode?'
-    params = {
-        'id': _id,
-        'season': season,
-        'episode': episode,
-    }
-    return base_uri + urllib.urlencode(params)

@@ -8,7 +8,6 @@ import xbmcgui
 from . import player
 from . import jsonrpc
 from . import metadata
-from . import tv
 from .router import router
 
 
@@ -76,7 +75,7 @@ def create_episode(tvdbid, name, season, episode):
     if os.path.exists(ep_file):
         return
     with open(ep_file, 'w') as strm:
-        strm.write(tv.foxy_tv_uri(tvdbid, season, episode))
+        strm.write(player.foxy_tv_uri(tvdbid, season, episode))
 
 
 def library_imdbids():

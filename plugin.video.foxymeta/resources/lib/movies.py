@@ -9,6 +9,7 @@ from . import metadata
 from . import player
 from .router import router
 from .apis import tmdb
+from . import ui
 
 
 @router.route('/movies')
@@ -41,7 +42,7 @@ def ui_trakt_list_movies(func, period=False):
                                    router.addon.getSettingString(
                                        'list.time.period').lower())
         for movie in metadata.trakt_movies(_list=_list, page=page):
-            li = metadata.movie_listitem(trakt_data=movie)
+            li = ui.movie_listitem(trakt_data=movie)
             li.setProperty('IsPlayable', 'true')
             xbmcplugin.addDirectoryItem(router.handle,
                                         router.build_url(player.play_movie,
@@ -109,7 +110,7 @@ def search(query=None):
         query = dialog.input('Search query:')
     for item in metadata.trakt_search(_type='movie', query=query):
         movie = item['movie']
-        li = metadata.movie_listitem(trakt_data=movie)
+        li = ui.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
@@ -128,7 +129,7 @@ def updates(page=1):
 @router.route('/movies/trakt/recommended')
 def recommended():
     for movie in metadata.trakt_recommended(_type='movies'):
-        li = metadata.movie_listitem(trakt_data=movie)
+        li = ui.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
@@ -141,7 +142,7 @@ def recommended():
 def collection():
     for item in metadata.trakt_collection(_type='movies', extended=True):
         movie = item['movie']
-        li = metadata.movie_listitem(trakt_data=movie)
+        li = ui.movie_listitem(trakt_data=movie)
         li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
@@ -184,7 +185,7 @@ def liked_lists(page=1):
 def trakt_list(user, list_id):
     for item in metadata.trakt_list(user, list_id, 'movies'):
         movie = item['movie']
-        li = metadata.movie_listitem(trakt_data=movie)
+        li = ui.movie_listitem(trakt_data=movie)
         li.setInfo('video', {
             'dateadded': ' '.join(item['listed_at'].split('.')[0].split('T')),
         })
@@ -201,7 +202,7 @@ def trakt_list(user, list_id):
 def tmdb_trending(media_type='movie', page=1):
     result = metadata.tmdb_trending(media_type='movie', page=page)
     for item in result['results']:
-        li = metadata.movie_listitem(tmdb_data=item)
+        li = ui.movie_listitem(tmdb_data=item)
         li.setProperty('IsPlayable', 'true')
         try:
             xbmcplugin.addDirectoryItem(router.handle,

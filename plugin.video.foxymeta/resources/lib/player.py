@@ -7,6 +7,7 @@ import xbmcplugin
 
 from . import metadata
 from .router import router
+from . import ui
 
 
 
@@ -32,6 +33,15 @@ def foxy_movie_uri(imdbid):
     return base_uri + urllib.urlencode({'imdb': imdbid})
 
 
+def foxy_tv_uri(_id, season, episode):
+    base_uri = 'plugin://plugin.video.foxystreams/play/episode?'
+    params = {
+        'id': _id,
+        'season': season,
+        'episode': episode,
+    }
+    return base_uri + urllib.urlencode(params)
+
 
 def movie_uri(ids, src='trakt'):
     if src == 'tmdb':
@@ -51,7 +61,7 @@ def play_movie(get_metadata=True, **ids):
         return
     if get_metadata:
         movie_details = metadata.trakt_movie(ids['imdb'])
-        li = metadata.movie_listitem(trakt_data=movie_details)
+        li = ui.movie_listitem(trakt_data=movie_details)
     else:
         li = xbmcgui.ListItem()
     li.setPath(movie_uri(ids))
