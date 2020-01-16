@@ -92,4 +92,6 @@ def get_all(path, auth_token=None, **params):
     
     response = requests.head(API_URL + path, headers=headers, params=params)
     for page in range(int(response.headers['X-Pagination-Page-Count'])):
-        yield get(API_URL + path, auth_token=auth_token, page=page+1)
+        page_response = get(path, auth_token=auth_token, page=page+1)
+        
+        yield page_response

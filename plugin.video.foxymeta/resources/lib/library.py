@@ -57,7 +57,8 @@ def tvdb_nfo(tvdbid):
 
     
 @router.route('/library/add/movie')
-def create_movie(imdbid):
+def create_movie(ids):
+    imdbid = ids['imdb']
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
         return
@@ -81,7 +82,8 @@ def clean_library(_type):
 
     
 @router.route('/library/add/show')
-def create_show(tvdbid):
+def create_show(ids):
+    tvdbid = ids['tvdb']
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
         return
@@ -90,7 +92,8 @@ def create_show(tvdbid):
 
 
 @router.route('/library/add/episode')
-def create_episode(tvdbid, name, season, episode):
+def create_episode(ids, name, season, episode):
+    tvdbid = ids['tvdb']
     season_dir = '{}/Library/TV/{}/Season {}'.format(router.addon_data_dir,
                                                      tvdbid,
                                                      season)
@@ -131,33 +134,41 @@ def library_episodes(tvshowid):
 @router.route('/library/sync/lists/choose')
 def choose_lists():
     old_choices = router.addon.getSettingString('library.sync.chosen_lists').split(',')
-    lists = metadata.trakt_personal_lists()
-    liked = metadata.trakt_liked_lists(all=True)
-    lists.extend(liked)
     slugs = []
     names = []
     preselect = []
     chosen_slugs = []
     
-    for list in lists:
-        try:
-            slugs.append(list['ids']['slug'])
-            names.append(list['name'])
-            name = list['name']
-        except:
-            slugs.append(list['list']['ids']['slug'])
-            names.append(list['list']['name'])
-            name = list['list']['name']
+    for list in metadata.trakt_personal_lists():
+        if 'ids' not in list:
+            list = list['list']
         
-        if name in old_choices:
-            preselect.append(names.index(name))
+        slug ='{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
+        slugs.append(slug)
+        names.append(list['name'])
+        
+        if slug in old_choices:
+            preselect.append(slugs.index(slug))
+
+    for list in metadata.trakt_liked_lists(all=True):
+        if 'ids' not in list:
+            list = list[0]['list']
+        
+        slug = '{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
+        slugs.append(slug)
+        names.append(list['name'])
+        
+        if slug in old_choices:
+            preselect.append(slugs.index(slug))
     
     choices = xbmcgui.Dialog().multiselect('Choose Lists to Sync', options=names,
                                            preselect=preselect)
-    for index in choices:
-        chosen_slugs.append(slugs[index])
+
+    if choices:
+        for index in choices:
+            chosen_slugs.append(slugs[index])
     
-    router.addon.setSettingString('library.sync.chosen_lists', ','.join(chosen_slugs))
+        router.addon.setSettingString('library.sync.chosen_lists', ','.join(chosen_slugs))
 
 
 @router.route('/library/sync/movies')
@@ -205,6 +216,35 @@ def sync_movie_lists(refresh=False):
         create_movie(imdbid)
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
+    progress.close()
+    
+    router.addon.setSettingString('trakt.last_sync_movies',
+                            time.strftime('%Y-%m-%d %H:%M:%S',
+                                          time.localtime(time.time())))
+    
+    xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
+    
+    
+@router.route('/library/sync/movies/lists')
+def sync_movie_lists(refresh=False):
+    progress = xbmcgui.DialogProgressBG()
+    progress.create('Adding Movie Lists to Foxy Library')
+    if refresh:
+        clean_library('Movies')
+    
+    chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
+    
+    in_library = library_imdbids()
+    
+    for i, chosen in enumerate(chosen_slugs):
+        slug, user = chosen.split('.')
+        list = metadata.trakt_list(user, slug, 'movies')
+        for movie in list:
+            imdbid = movie['movie']['ids']['imdb']
+            if imdbid in in_library:
+                continue
+            create_movie(movie['movie']['ids'])
+        progress.update(int((float(i) / len(chosen_slugs)) * 100))
     progress.close()
     
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
@@ -255,7 +295,7 @@ def sync_show_collection(refresh=False):
             if not refresh:
                 if (tvdbid in in_library) and (tvdbid not in updates):
                     continue
-            create_show(tvdbid)
+            create_show(ids)
             try:
                 have_episodes = library_episodes(in_library[tvdbid])
             except KeyError:
@@ -289,4 +329,41 @@ def sync_show_collection(refresh=False):
                                    int(time.time()))
     finally:
         progress.close()
+    xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
+    
+    
+@router.route('/library/sync/tv/lists')
+def sync_tv_lists(refresh=False):
+    progress = xbmcgui.DialogProgressBG()
+    progress.create('Adding TV Show Lists to Foxy Library')
+    if refresh:
+        clean_library('TV')
+    
+    chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
+    
+    in_library = library_shows_tvdbid()
+    
+    for i, chosen in enumerate(chosen_slugs):
+        slug, user = chosen.split('.')
+        list = metadata.trakt_list(user, slug, 'shows')
+        for show in list:
+            ids = show['show']['ids']
+            tvdbid = ids['tvdb']
+            name = show['show']['title']
+            create_show(ids)
+            try:
+                have_episodes = library_episodes(in_library[tvdbid])
+            except KeyError:
+                have_episodes = ()
+            for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
+                if season == '0':
+                    continue
+                for episode in metadata.tvdb_season(tvdbid, season):
+                    ep_num = episode['airedEpisodeNumber']
+                    if (int(season), int(ep_num)) in have_episodes:
+                        continue
+                    create_episode(ids, name, season, ep_num)
+        progress.update(int((float(i) / len(chosen_slugs)) * 100))
+    progress.close()
+    
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
