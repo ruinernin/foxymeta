@@ -132,6 +132,15 @@ def trakt_collection(_type='movies', extended=False):
     else:
         result = trakt.get(path)
     return result
+    
+    
+def trakt_watchlist(_type='movies', extended=False):
+    path = 'sync/watchlist/{}'.format(_type)
+    if extended:
+        result = trakt.get(path, extended='full')
+    else:
+        result = trakt.get(path)
+    return result
 
 
 def trakt_list(user, list_id, _type):
