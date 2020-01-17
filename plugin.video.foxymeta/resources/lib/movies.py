@@ -153,9 +153,22 @@ def collection():
                                                      **movie['ids']),
                                     li, False)
     xbmcplugin.endOfDirectory(router.handle)
+    
+    
+@router.route('/movies/trakt/watchlist')
+def watchlist():
+    for item in metadata.trakt_watchlist(_type='movies', extended=True):
+        movie = item['movie']
+        li = ui.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    router.build_url(player.play_movie,
+                                                     **movie['ids']),
+                                    li, False)
+    xbmcplugin.endOfDirectory(router.handle)
 
 
-@router.route('/trakt/personal_lists')
+@router.route('/movies/trakt/personal_lists')
 def personal_lists():
     for _list in metadata.trakt_personal_lists():
         li = xbmcgui.ListItem(_list['name'])
@@ -185,7 +198,7 @@ def liked_lists(page=1):
     xbmcplugin.endOfDirectory(router.handle)
 
 
-@router.route('/trakt/list')
+@router.route('/movies/trakt/list')
 def trakt_list(user, list_id):
     for item in metadata.trakt_list(user, list_id, 'movies'):
         movie = item['movie']
