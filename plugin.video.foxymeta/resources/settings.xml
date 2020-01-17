@@ -18,11 +18,15 @@
         <setting type="lsep" label="Trakt Library Sync" />
         <setting type="bool" id="library.sync.traktcollection.movies" label="Sync Movies Collection on Startup" default="false" />
         <setting type="bool" id="library.sync.traktcollection.tv" label="Sync TV Shows Collection on Startup" default="false" />
+        <setting type="bool" id="library.sync.traktwatchlist.movies" label="Sync Movies Watchlist on Startup" default="false" />
+        <setting type="bool" id="library.sync.traktwatchlist.tv" label="Sync TV Shows Watchlist on Startup" default="false" />
         <setting type="action" label="Choose Lists to Sync" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/lists/choose)" />
         <setting type="text" id="library.sync.chosen_lists" label="Chosen lists to sync" visible="false" />
         <setting type="lsep" label="Manual Force Sync (Delete and Rebuild)" />
-        <setting type="action" id="trakt.last_sync_movies" label="Sync Movies Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True)" />
-        <setting type="action" id="trakt.last_sync_shows" label="Sync TV Shows Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True)" />
+        <setting type="action" id="trakt.last_sync_movies" label="Sync Movies Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies/collection?refresh=True)" />
+        <setting type="action" id="trakt.last_sync_shows" label="Sync TV Shows Collection Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv/collection?refresh=True)" />
+        <setting type="action" id="trakt.last_sync_movies_watchlist" label="Sync Movies Watchlist Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies/collection?refresh=True)" />
+        <setting type="action" id="trakt.last_sync_shows_watchlst" label="Sync TV Shows Watchlist Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv/collection?refresh=True)" />
         <setting type="action" id="trakt.last_sync_movie_lists" label="Sync Movie Lists Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies/lists?refresh=True)" />
         <setting type="action" id="trakt.last_sync_tv_lists" label="Sync TV Show Lists Now" option="close" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv/lists?refresh=True)" />
         <setting type="number" id="library.sync.traktcollection.tv.lastupdate" visible="false" default="0" />
