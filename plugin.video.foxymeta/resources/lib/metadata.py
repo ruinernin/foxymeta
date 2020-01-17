@@ -153,6 +153,13 @@ def tvdb_episode(jwt, tvdb_episodeid):
     return result
 
 
+@tvdb.jwt_auth
+def tvdb_updates(jwt, epoch):
+    path = 'updated/query'
+    result = tvdb.get(jwt, path, fromTime=epoch)['data']
+    return result
+
+
 @router.memcache
 def tmdb_movie(tmdb_id):
     return tmdb.get('/movie/{}'.format(tmdb_id))

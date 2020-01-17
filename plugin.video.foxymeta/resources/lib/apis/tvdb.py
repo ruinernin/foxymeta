@@ -1,7 +1,10 @@
-from functools import wraps
 import json
+import time
+from functools import wraps
 
 import requests
+
+from ..router import router
 
 
 API_KEY = 'AB2ED64C9BE51811'
@@ -10,12 +13,22 @@ IMAGE_URI = 'https://artworks.thetvdb.com/banners/'
 HEADERS = (('Content-Type', 'application/json'),)
 
 def authenticate():
-    data = {
-        'apikey': API_KEY,
-    }
-    return requests.post(API_URL + 'login',
-                         headers=dict(HEADERS),
-                         data=json.dumps(data)).json()['token']
+    last_jwt = router.addon.getSetting('apis.tvdb.jwt')
+    last_jwt_ts = router.addon.getSettingInt('apis.tvdb.jwt.epoch')
+    if (time.time() - last_jwt_ts) < 3600:
+        return last_jwt
+    elif (time.time() - last_jwt_ts) < (3600 * 24):
+        token = get(last_jwt, 'refresh_token')['token']
+    else:
+        data = {
+            'apikey': API_KEY,
+        }
+        token = requests.post(API_URL + 'login',
+                              headers=dict(HEADERS),
+                              data=json.dumps(data)).json()['token']
+    router.addon.setSetting('apis.tvdb.jwt', token)
+    router.addon.setSettingInt('apis.tvdb.jwt.epoch', int(time.time()))
+    return token
 
 
 def get(token, path, **kwargs):

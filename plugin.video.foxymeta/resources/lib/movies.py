@@ -43,7 +43,6 @@ def ui_trakt_list_movies(func, period=False):
                                        'list.time.period').lower())
         for movie in metadata.trakt_movies(_list=_list, page=page):
             li = ui.movie_listitem(trakt_data=movie)
-            li.setProperty('IsPlayable', 'true')
             xbmcplugin.addDirectoryItem(router.handle,
                                         router.build_url(player.play_movie,
                                                          **movie['ids']),
@@ -111,7 +110,6 @@ def search(query=None):
     for item in metadata.trakt_search(_type='movie', query=query):
         movie = item['movie']
         li = ui.movie_listitem(trakt_data=movie)
-        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
@@ -130,7 +128,6 @@ def updates(page=1):
 def recommended():
     for movie in metadata.trakt_recommended(_type='movies'):
         li = ui.movie_listitem(trakt_data=movie)
-        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
@@ -143,7 +140,6 @@ def collection():
     for item in metadata.trakt_collection(_type='movies', extended=True):
         movie = item['movie']
         li = ui.movie_listitem(trakt_data=movie)
-        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
@@ -189,7 +185,6 @@ def trakt_list(user, list_id):
         li.setInfo('video', {
             'dateadded': ' '.join(item['listed_at'].split('.')[0].split('T')),
         })
-        li.setProperty('IsPlayable', 'true')
         xbmcplugin.addDirectoryItem(router.handle,
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
@@ -203,7 +198,6 @@ def tmdb_trending(media_type='movie', page=1):
     result = metadata.tmdb_trending(media_type='movie', page=page)
     for item in result['results']:
         li = ui.movie_listitem(tmdb_data=item)
-        li.setProperty('IsPlayable', 'true')
         try:
             xbmcplugin.addDirectoryItem(router.handle,
                                         player.movie_uri(item['id'],

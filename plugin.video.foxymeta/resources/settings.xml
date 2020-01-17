@@ -19,5 +19,8 @@
         <setting type="lsep" label="Manual Force Sync (Delete and rebuild)" />
         <setting type="action" label="Movies" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/movies?refresh=True)" />
         <setting type="action" label="TV Shows" action="RunPlugin(plugin://plugin.video.foxymeta/library/sync/tv?refresh=True)" />
+        <setting type="number" id="library.sync.traktcollection.tv.lastupdate" visible="false" default="0" />
+        <setting type="number" id="apis.tvdb.jwt.epoch" visible="false" default="0" />
+        <setting type="text" id="apis.tvdb.jwt" visible="false" />
     </category>
 </settings>

@@ -1,6 +1,7 @@
 import errno
 import os
 import shutil
+import time
 
 import xbmc
 import xbmcgui
@@ -121,13 +122,22 @@ def sync_movie_collection(refresh=False):
 def sync_show_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding TV Shows to Foxy Library')
+    lastupdate = router.addon.getSettingInt(
+        'library.sync.traktcollection.tv.lastupdate')
+    updates = None
     if refresh:
         clean_library('TV')
+    else:
+        if (time.time() - lastupdate) < (3600 * 24 * 7):
+            updates = [show['id'] for show in metadata.tvdb_updates(lastupdate)]
     shows = metadata.trakt_collection(_type='shows')
     in_library = library_shows_tvdbid()
     for i, show in enumerate(shows):
         tvdbid = show['show']['ids']['tvdb']
         name = show['show']['title']
+        if updates is not None:
+            if (tvdbid in in_library) and (tvdbid not in updates):
+                continue
         create_show(tvdbid)
         try:
             have_episodes = library_episodes(in_library[tvdbid])
@@ -142,5 +152,7 @@ def sync_show_collection(refresh=False):
                     continue
                 create_episode(tvdbid, name, season, ep_num)
         progress.update(int((float(i) / len(shows)) * 100))
+    router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
+                               int(time.time()))
     progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)

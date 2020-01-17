@@ -1,8 +1,9 @@
 import datetime
 
 from . import metadata
-from .router import router
 from . import ui
+from .player import foxy_tv_uri
+from .router import router
 
 import xbmcgui
 import xbmcplugin

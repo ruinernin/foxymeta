@@ -77,6 +77,7 @@ def episode_listitem(trakt_data=None, tvdb_data=None):
     li = xbmcgui.ListItem(info['title'])
     li.setInfo('video', info)
     li.setArt(art)
+    li.setProperty('IsPlayable', 'true')
     return li
 
 
@@ -111,4 +112,5 @@ def movie_listitem(trakt_data=None, tmdb_data=None):
         except (KeyError, tmdb.NotFound):
             pass
         li.setArt(art)
+    li.setProperty('IsPlayable', 'true')
     return li
