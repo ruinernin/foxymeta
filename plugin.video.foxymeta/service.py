@@ -10,14 +10,13 @@ def main():
     monitor = xbmc.Monitor()
     while not monitor.abortRequested():
         if not router.addon.getSettingString('trakt.access_token'):
-            continue
-    
+            return
         if router.addon.getSettingBool('library.sync.traktcollection.movies'):
             library.sync_movie_collection()
         if router.addon.getSettingBool('library.sync.traktcollection.tv'):
             library.sync_show_collection()
         sleep_mins = 45 + int(random.random() * 15)
-        if not monitor.waitForAbort(router.addon.getSettingInt('trakt.sync_time_period') * sleep_mins):
+        if not monitor.waitForAbort(sleep_mins * 60):
             break
 
 

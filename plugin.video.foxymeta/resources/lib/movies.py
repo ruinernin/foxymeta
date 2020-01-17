@@ -11,7 +11,10 @@ from .router import router
 from .apis import tmdb
 from . import ui
 
-_trakt_access_token = router.addon.getSettingString('trakt.access_token')
+
+
+TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
+
 
 @router.route('/movies')
 def root():
@@ -22,18 +25,18 @@ def root():
                         (played, 'Most Played'),
                         (watched, 'Most Watched'),
                         (collected, 'Most Collected')],
-                       dirs=True, more=_trakt_access_token)
-    if _trakt_access_token:
-        router.gui_dirlist([(trakt, 'My Movies')], dirs=True)
-                           
+                       dirs=True, more=TRAKT_AUTHED)
+    if TRAKT_AUTHED:
+        router.gui_dirlist([(trakt_personal, 'My Movies')], dirs=True)
+
+
 @router.route('/movies/trakt')
-def trakt():
-    if _trakt_access_token:
-        router.gui_dirlist([(recommended, 'Recommended'),
-                            (collection, 'Collection'),
-                            (personal_lists, 'Personal Lists'),
-                            (liked_lists, 'Liked Lists')],
-                           dirs=True)
+def trakt_personal():
+    router.gui_dirlist([(recommended, 'Recommended'),
+                        (collection, 'Collection'),
+                        (personal_lists, 'Personal Lists'),
+                        (liked_lists, 'Liked Lists')],
+                       dirs=True)
 
 
 def ui_trakt_list_movies(func, period=False):

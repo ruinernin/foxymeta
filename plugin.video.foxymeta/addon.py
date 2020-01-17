@@ -10,7 +10,9 @@ from resources.lib import metadata, movies, tv, library
 from resources.lib.apis import tmdb, trakt
 from resources.lib.router import router
 
-_trakt_access_token = router.addon.getSettingString('trakt.access_token')
+
+
+TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
 
 
 @router.route('/')
@@ -23,17 +25,15 @@ def root():
                                 router.build_url(tv.root),
                                 xbmcgui.ListItem('TV Shows'),
                                 True)
-                                
-    if _trakt_access_token:
+    if TRAKT_AUTHED:
         xbmcplugin.addDirectoryItem(router.handle,
-                                    router.build_url(movies.trakt),
+                                    router.build_url(movies.trakt_personal),
                                     xbmcgui.ListItem('My Movies'),
                                     True)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    router.build_url(tv.trakt),
+                                    router.build_url(tv.trakt_personal),
                                     xbmcgui.ListItem('My TV Shows'),
                                     True)
-                                    
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(open_library),
                                 xbmcgui.ListItem('Open Foxy Library'),
