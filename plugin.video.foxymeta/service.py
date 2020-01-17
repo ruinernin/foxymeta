@@ -9,6 +9,8 @@ from resources.lib.router import router
 def main():
     monitor = xbmc.Monitor()
     while not monitor.abortRequested():
+        if not router.addon.getSettingString('trakt.access_token'):
+            return
         if router.addon.getSettingBool('library.sync.traktcollection.movies'):
             library.sync_movie_collection()
         if router.addon.getSettingBool('library.sync.traktcollection.tv'):

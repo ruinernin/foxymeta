@@ -10,16 +10,26 @@ import xbmcplugin
 
 
 
+TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
+
+
 @router.route('/tv')
 def root():
     router.gui_dirlist([(search, 'Search'),
-                        (popular, 'Popular TV'),
-                        (trending, 'Trending TV'),
-                        (played, 'Most Played TV'),
-                        (watched, 'Most Watched TV'),
-                        (collected, 'Most Collected TV'),
-                        (updates, 'Recently Updated TV')],
-                       dirs=True)
+                        (popular, 'Popular'),
+                        (trending, 'Trending'),
+                        (played, 'Most Played'),
+                        (watched, 'Most Watched'),
+                        (collected, 'Most Collected'),
+                        (updates, 'Recently Updated')],
+                       dirs=True, more=TRAKT_AUTHED)
+    if TRAKT_AUTHED:
+        router.gui_dirlist([(trakt_personal, 'My TV Shows')], dirs=True)
+
+
+@router.route('/tv/trakt')
+def trakt_personal():
+    pass
 
 
 def ui_trakt_shows(func):

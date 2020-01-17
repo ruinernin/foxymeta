@@ -12,24 +12,31 @@ from .apis import tmdb
 from . import ui
 
 
+
+TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
+
+
 @router.route('/movies')
 def root():
-    trakt_token = router.addon.getSettingString('trakt.access_token')
     router.gui_dirlist([(search, 'Search'),
-                        (popular, 'Popular Movies'),
-                        (trending, 'Trending Movies'),
-                        (tmdb_trending, 'Trending Movies (TMDB)'),
-                        (played, 'Most Played Movies'),
-                        (watched, 'Most Watched Movies'),
-                        (collected, 'Most Collected Movies')],
-                       dirs=True,  more=trakt_token)
-    if trakt_token:
-        router.gui_dirlist([(recommended, 'Recommended Movies'),
-                            (collection, 'Collection'),
-                            (personal_lists, 'Personal Lists'),
-                            (liked_lists, 'Liked Lists')],
-                           dirs=True)
+                        (popular, 'Popular'),
+                        (trending, 'Trending'),
+                        (tmdb_trending, 'Trending Movies (TMDb)'),
+                        (played, 'Most Played'),
+                        (watched, 'Most Watched'),
+                        (collected, 'Most Collected')],
+                       dirs=True, more=TRAKT_AUTHED)
+    if TRAKT_AUTHED:
+        router.gui_dirlist([(trakt_personal, 'My Movies')], dirs=True)
 
+
+@router.route('/movies/trakt')
+def trakt_personal():
+    router.gui_dirlist([(recommended, 'Recommended'),
+                        (collection, 'Collection'),
+                        (personal_lists, 'Personal Lists'),
+                        (liked_lists, 'Liked Lists')],
+                       dirs=True)
 
 
 def ui_trakt_list_movies(func, period=False):
@@ -40,7 +47,7 @@ def ui_trakt_list_movies(func, period=False):
         if period:
             _list = '{}/{}'.format(_list,
                                    router.addon.getSettingString(
-                                       'list.time.period').lower())
+                                       'trakt.list_time_period').lower())
         for movie in metadata.trakt_movies(_list=_list, page=page):
             li = ui.movie_listitem(trakt_data=movie)
             xbmcplugin.addDirectoryItem(router.handle,

@@ -11,6 +11,10 @@ from resources.lib.apis import tmdb, trakt
 from resources.lib.router import router
 
 
+
+TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
+
+
 @router.route('/')
 def root():
     xbmcplugin.addDirectoryItem(router.handle,
@@ -19,8 +23,17 @@ def root():
                                 True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(tv.root),
-                                xbmcgui.ListItem('TV'),
+                                xbmcgui.ListItem('TV Shows'),
                                 True)
+    if TRAKT_AUTHED:
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    router.build_url(movies.trakt_personal),
+                                    xbmcgui.ListItem('My Movies'),
+                                    True)
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    router.build_url(tv.trakt_personal),
+                                    xbmcgui.ListItem('My TV Shows'),
+                                    True)
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(open_library),
                                 xbmcgui.ListItem('Open Foxy Library'),
