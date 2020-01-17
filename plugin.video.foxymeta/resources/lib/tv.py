@@ -17,6 +17,7 @@ TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
 
 @router.route('/tv')
 def root():
+    xbmcplugin.setContent(router.handle, 'files')
     router.gui_dirlist([(search, 'Search'),
                         (popular, 'Popular'),
                         (trending, 'Trending'),
@@ -31,6 +32,7 @@ def root():
 
 @router.route('/tv/trakt')
 def trakt_personal():
+    xbmcplugin.setContent(router.handle, 'files')
     router.gui_dirlist([(collection, 'Collection'),
                         (watchlist, 'Watchlist'),
                         (personal_lists, 'Personal Lists'),
@@ -58,6 +60,8 @@ def ui_trakt_shows(func):
                                                      page=int(page)+1),
                                     xbmcgui.ListItem('Next'),
                                     True)
+        
+        xbmcplugin.setContent(router.handle, 'tvshows')
         xbmcplugin.endOfDirectory(router.handle)
     return wrapper
 
@@ -110,6 +114,7 @@ def collection():
                                         tvdbid=show['ids']['tvdb']),
                                     li,
                                     True)
+    xbmcplugin.setContent(router.handle, 'tvshows')
     xbmcplugin.endOfDirectory(router.handle)
     
     
@@ -124,6 +129,7 @@ def watchlist():
                                         tvdbid=show['ids']['tvdb']),
                                     li,
                                     True)
+    xbmcplugin.setContent(router.handle, 'tvshows')
     xbmcplugin.endOfDirectory(router.handle)
 
     
@@ -137,6 +143,7 @@ def personal_lists():
         xbmcplugin.addDirectoryItem(router.handle,
                                     url,
                                     li, True)
+    xbmcplugin.setContent(router.handle, 'files')
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -154,6 +161,7 @@ def liked_lists(page=1):
                                 router.build_url(liked_lists, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
+    xbmcplugin.setContent(router.handle, 'files')
     xbmcplugin.endOfDirectory(router.handle)
     
     
@@ -172,6 +180,7 @@ def trakt_list(user, list_id):
                             li,
                             True)
 
+    xbmcplugin.setContent(router.handle, 'tvshows')
     xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)
     
@@ -190,6 +199,7 @@ def search(query=None):
                                         tvdbid=show['ids']['tvdb']),
                                     li,
                                     True)
+    xbmcplugin.setContent(router.handle, 'tvshows')
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -207,6 +217,7 @@ def tv_show(tvdbid=None):
                                         season=season),
                                     li,
                                     True)
+    xbmcplugin.setContent(router.handle, 'tvshows')
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -223,4 +234,5 @@ def tv_season(tvdbid=None, season=None):
                                         episode=episode['airedEpisodeNumber']),
                                     li,
                                     False)
+    xbmcplugin.setContent(router.handle, 'episodes')
     xbmcplugin.endOfDirectory(router.handle)
