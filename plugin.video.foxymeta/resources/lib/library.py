@@ -175,14 +175,21 @@ def choose_lists():
     names = []
     preselect = []
     chosen_slugs = []
+    options = []
     
     for list in metadata.trakt_personal_lists():
         if 'ids' not in list:
             list = list['list']
         
         slug ='{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
+        name = list['name']
+        username = list['user']['username']
+        description = list['description']
         slugs.append(slug)
-        names.append(list['name'])
+        names.append(name)
+        
+        item = xbmcgui.ListItem(name)
+        options.append(item)
         
         if slug in old_choices:
             preselect.append(slugs.index(slug))
@@ -192,13 +199,19 @@ def choose_lists():
             list = list[0]['list']
         
         slug = '{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
+        name = list['name']
+        username = list['user']['username']
+        description = list['description']
         slugs.append(slug)
-        names.append(list['name'])
+        names.append(name)
+        
+        item = xbmcgui.ListItem('{} by {}'.format(name, username))
+        options.append(item)
         
         if slug in old_choices:
             preselect.append(slugs.index(slug))
     
-    choices = xbmcgui.Dialog().multiselect('Choose Lists to Sync', options=names,
+    choices = xbmcgui.Dialog().multiselect('Choose Lists to Sync', options=options,
                                            preselect=preselect)
 
     if choices:
