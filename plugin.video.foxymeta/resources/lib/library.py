@@ -3,7 +3,8 @@ import json
 import os
 import shutil
 import time
-import xml.etree.ElementTree
+from xml.dom import minidom
+from xml.etree import ElementTree
 
 import xbmc
 import xbmcgui
@@ -24,7 +25,16 @@ def mkdir(path):
             raise
     else:
         return True
+        
 
+def clean_library(_type):
+    """Remove all `_type` ('Movies', 'TV') library files."""
+    libdir = '{}/Library/{}/'.format(router.addon_data_dir, _type)
+    if not os.path.exists(libdir):
+        return
+    for _dir in os.listdir(libdir):
+        shutil.rmtree(libdir + _dir)
+    xbmc.executebuiltin('CleanLibrary(video)', wait=True)
 
 def add_sources():
     sources = xbmc.translatePath('special://userdata/sources.xml')
@@ -54,15 +64,45 @@ def imdb_nfo(imdbid):
 
 def tvdb_nfo(tvdbid):
     return 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
+    
+    
+def create_trakt_playlist(name, tag, type='movies'):
+    playlist_path = xbmc.translatePath('special://profile/playlists/video')
+    
+    playlist_root = ElementTree.Element('smartplaylist')
+    playlist_root.set('type', type)
+    name_node = ElementTree.SubElement(playlist_root, 'name')
+    name_node.text = name
+    match_node = ElementTree.SubElement(playlist_root, 'match')
+    match_node.text = 'all'
+    rule_node = ElementTree.SubElement(playlist_root, 'rule')
+    rule_node.set('field', 'tag')
+    rule_node.set('operator', 'is')
+    value_node = ElementTree.SubElement(rule_node, 'value')
+    value_node.text = tag
+    
+    xml = ElementTree.tostring(playlist_root, 'utf-8')
+    new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
+    
+    with open(os.path.join(playlist_path, '{}.xsp'.format(tag)), 'w') as xsp:
+        xsp.write(new_xml)
 
     
 @router.route('/library/add/movie')
-def create_movie(ids):
+def create_movie(ids, tag=''):
     imdbid = ids['imdb']
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
+        if tag:
+            movie_root = ElementTree.Element('movie')
+            tag_node = ElementTree.SubElement(movie_root, 'tag')
+            tag_node.text = tag
+            xml = ElementTree.tostring(movie_root, 'utf-8')
+            new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
+            nfo.write(new_xml)
+            
         nfo.write(imdb_nfo(imdbid))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
         strm.write(router.build_url(player.play_movie,
@@ -70,29 +110,26 @@ def create_movie(ids):
                                     **ids))
 
 
-def clean_library(_type):
-    """Remove all `_type` ('Movies', 'TV') library files."""
-    libdir = '{}/Library/{}/'.format(router.addon_data_dir, _type)
-    if not os.path.exists(libdir):
-        return
-    for _dir in os.listdir(libdir):
-        shutil.rmtree(libdir + _dir)
-    xbmc.executebuiltin('CleanLibrary(video)', wait=True)
-
-
-    
 @router.route('/library/add/show')
-def create_show(ids):
+def create_show(ids, tag=''):
     tvdbid = ids['tvdb']
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
         return
     with open('{}/tvshow.nfo'.format(show_dir), 'w') as nfo:
+        if tag:
+            show_root = ElementTree.Element('tvshow')
+            tag_node = ElementTree.SubElement(show_root, 'tag')
+            tag_node.text = tag
+            xml = ElementTree.tostring(show_root, 'utf-8')
+            new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
+            nfo.write(new_xml)
+    
         nfo.write(tvdb_nfo(tvdbid))
 
 
 @router.route('/library/add/episode')
-def create_episode(ids, name, season, episode):
+def create_episode(ids, name, season, episode, tag=''):
     tvdbid = ids['tvdb']
     season_dir = '{}/Library/TV/{}/Season {}'.format(router.addon_data_dir,
                                                      tvdbid,
@@ -213,7 +250,7 @@ def sync_movie_lists(refresh=False):
             pass
         if imdbid in in_library:
             continue
-        create_movie(imdbid)
+        create_movie(movie['movie']['ids'], tag='collection')
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
@@ -243,9 +280,15 @@ def sync_movie_lists(refresh=False):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
                 continue
-            create_movie(movie['movie']['ids'])
+            create_movie(movie['movie']['ids'], tag=slug)
+        
+        create_trakt_playlist('{} Movies'.format(slug), slug)
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
     progress.close()
+    
+    router.addon.setSettingString('trakt.last_sync_movie_lists',
+                            time.strftime('%Y-%m-%d %H:%M:%S',
+                                          time.localtime(time.time())))
     
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 
@@ -295,7 +338,7 @@ def sync_show_collection(refresh=False):
             if not refresh:
                 if (tvdbid in in_library) and (tvdbid not in updates):
                     continue
-            create_show(ids)
+            create_show(ids, tag='collection')
             try:
                 have_episodes = library_episodes(in_library[tvdbid])
             except KeyError:
@@ -350,7 +393,7 @@ def sync_tv_lists(refresh=False):
             ids = show['show']['ids']
             tvdbid = ids['tvdb']
             name = show['show']['title']
-            create_show(ids)
+            create_show(ids, tag=slug)
             try:
                 have_episodes = library_episodes(in_library[tvdbid])
             except KeyError:
@@ -365,5 +408,9 @@ def sync_tv_lists(refresh=False):
                     create_episode(ids, name, season, ep_num)
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
     progress.close()
+    
+    router.addon.setSettingString('trakt.last_sync_tv_lists',
+                            time.strftime('%Y-%m-%d %H:%M:%S',
+                                          time.localtime(time.time())))
     
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
