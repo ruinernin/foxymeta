@@ -103,18 +103,20 @@ def library_episodes(tvshowid):
 def sync_movie_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Movies to Foxy Library')
-    if refresh:
-        clean_library('Movies')
-    movies = metadata.trakt_collection(_type='movies')
-    in_library = library_imdbids()
-    for i, movie in enumerate(movies):
-        imdbid = movie['movie']['ids']['imdb']
-        if imdbid in in_library:
-            continue
-        create_movie(movie['movie']['ids'])
-        if i % 10 == 0:
-            progress.update(int((float(i) / len(movies)) * 100))
-    progress.close()
+    try:
+        if refresh:
+            clean_library('Movies')
+        movies = metadata.trakt_collection(_type='movies')
+        in_library = library_imdbids()
+        for i, movie in enumerate(movies):
+            imdbid = movie['movie']['ids']['imdb']
+            if imdbid in in_library:
+                continue
+            create_movie(movie['movie']['ids'])
+            if i % 10 == 0:
+                progress.update(int((float(i) / len(movies)) * 100))
+    finally:
+        progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 
 
@@ -122,37 +124,40 @@ def sync_movie_collection(refresh=False):
 def sync_show_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding TV Shows to Foxy Library')
-    lastupdate = router.addon.getSettingInt(
-        'library.sync.traktcollection.tv.lastupdate')
-    updates = None
-    if refresh:
-        clean_library('TV')
-    else:
-        if (time.time() - lastupdate) < (3600 * 24 * 7):
-            updates = [show['id'] for show in metadata.tvdb_updates(lastupdate)]
-    shows = metadata.trakt_collection(_type='shows')
-    in_library = library_shows_tvdbid()
-    for i, show in enumerate(shows):
-        tvdbid = show['show']['ids']['tvdb']
-        name = show['show']['title']
-        if updates is not None:
-            if (tvdbid in in_library) and (tvdbid not in updates):
-                continue
-        create_show(tvdbid)
-        try:
-            have_episodes = library_episodes(in_library[tvdbid])
-        except KeyError:
-            have_episodes = ()
-        for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
-            if season == '0':
-                continue
-            for episode in metadata.tvdb_season(tvdbid, season):
-                ep_num = episode['airedEpisodeNumber']
-                if (int(season), int(ep_num)) in have_episodes:
+    try:
+        lastupdate = router.addon.getSettingInt(
+            'library.sync.traktcollection.tv.lastupdate')
+        updates = None
+        if refresh:
+            clean_library('TV')
+        else:
+            if (time.time() - lastupdate) < (3600 * 24 * 7):
+                updates = [show['id']
+                           for show in metadata.tvdb_updates(lastupdate)]
+        shows = metadata.trakt_collection(_type='shows')
+        in_library = library_shows_tvdbid()
+        for i, show in enumerate(shows):
+            tvdbid = show['show']['ids']['tvdb']
+            name = show['show']['title']
+            if updates is not None:
+                if (tvdbid in in_library) and (tvdbid not in updates):
                     continue
-                create_episode(tvdbid, name, season, ep_num)
-        progress.update(int((float(i) / len(shows)) * 100))
-    router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
-                               int(time.time()))
-    progress.close()
+            create_show(tvdbid)
+            try:
+                have_episodes = library_episodes(in_library[tvdbid])
+            except KeyError:
+                have_episodes = ()
+            for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
+                if season == '0':
+                    continue
+                for episode in metadata.tvdb_season(tvdbid, season):
+                    ep_num = episode['airedEpisodeNumber']
+                    if (int(season), int(ep_num)) in have_episodes:
+                        continue
+                    create_episode(tvdbid, name, season, ep_num)
+            progress.update(int((float(i) / len(shows)) * 100))
+        router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
+                                   int(time.time()))
+    finally:
+        progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
