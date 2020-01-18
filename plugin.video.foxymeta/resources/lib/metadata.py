@@ -222,13 +222,13 @@ def tmdb_trending(page=1, media_type='movie', time_window='week'):
 
 @router.cache()
 def tvdb_poster(tvdbid):
-    path = tvdb_show(tvdbid)['poster']
+    path = tvdb_show(tvdbid).get('poster', '')
     return tvdb.IMAGE_URI + path
 
 
 @router.cache()
 def tvdb_fanart(tvdbid):
-    path = tvdb_show(tvdbid)['fanart']
+    path = tvdb_show(tvdbid).get('fanart', '')
     return tvdb.IMAGE_URI + path
 
 
