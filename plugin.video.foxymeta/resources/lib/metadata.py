@@ -143,8 +143,11 @@ def trakt_watchlist(_type='movies', extended=False):
     return result
 
 
-def trakt_list(user, list_id, _type):
-    path = 'users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+def trakt_list(user, list_id, _type, items=True):
+    if items:
+        path = 'users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+    else:
+        path = 'users/{}/lists/{}'.format(user, list_id)
     result = trakt.get(path, extended='full')
     return result
 

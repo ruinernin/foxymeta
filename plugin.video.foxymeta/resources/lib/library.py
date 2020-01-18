@@ -81,48 +81,61 @@ def tvdb_nfo(tvdbid):
     return 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
     
     
-def create_trakt_playlist(name, tag, type='movies'):
+def create_trakt_playlist(user, slug, type):
     playlist_path = xbmc.translatePath('special://profile/playlists/video')
+    _list = metadata.trakt_list(user, slug, type, items=False)
+    
+    sort_by_values = (('rank', 'top250'), ('added', 'dateadded'),
+                      ('title', 'sorttitle'), ('released', ''),
+                      ('runtime', 'time'), ('popularity', 'playcount'),
+                      ('percentage', 'rating'), ('votes', 'votes'),
+                      ('my_rating', 'userrating'), ('random', 'random'), )
+    sort_by_translation = {tag: val for tag, val in sort_by_values}
+                      
+    info = {'type': type,
+            'username': _list['user']['username'],
+            'name': '{} {}'.format(_list['name'], type.capitalize()),
+            'sort_how': _list['sort_how'] + 'ending'}
+    
+    if _list['sort_by'] in sort_by_translation:
+        info.update({'sort_by': sort_by_translation[_list['sort_by']]})
     
     playlist_root = ElementTree.Element('smartplaylist')
-    playlist_root.set('type', type)
+    playlist_root.set('type', info['type'])
+    
     name_node = ElementTree.SubElement(playlist_root, 'name')
-    name_node.text = name
+    name_node.text = '{} by {}'.format(info['name'], info['username'])
+    
     match_node = ElementTree.SubElement(playlist_root, 'match')
     match_node.text = 'all'
     rule_node = ElementTree.SubElement(playlist_root, 'rule')
-    rule_node.set('field', 'tag')
-    rule_node.set('operator', 'is')
+    rule_node.attrib = {'field': 'tag', 'operator': 'is'}
+    
     value_node = ElementTree.SubElement(rule_node, 'value')
-    value_node.text = tag
+    value_node.text = slug
+    order_node = ElementTree.SubElement(playlist_root, 'order')
+    order_node.attrib = {'direction': info['sort_how']}
+    order_node.text = info['sort_by']
     
     xml = ElementTree.tostring(playlist_root, 'utf-8')
     new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
     
-    with open(os.path.join(playlist_path, '{}.xsp'.format(tag)), 'w') as xsp:
+    with open(os.path.join(playlist_path, '{}.xsp'.format(info['name'])), 'w') as xsp:
         xsp.write(new_xml)
 
     
 @router.route('/library/add/movie')
-def create_movie(ids, tag=''):
-    imdbid = ids['imdb']
+def create_movie(movie, tag=''):
+    imdbid = movie['movie']['ids']['imdb']
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
-        if tag:
-            movie_root = ElementTree.Element('movie')
-            tag_node = ElementTree.SubElement(movie_root, 'tag')
-            tag_node.text = tag
-            xml = ElementTree.tostring(movie_root, 'utf-8')
-            new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
-            nfo.write(new_xml)
-            
-        nfo.write(imdb_nfo(imdbid))
+        nfo.write(imdb_nfo(movie, tag))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
         strm.write(router.build_url(player.play_movie,
                                     get_metadata=False,
-                                    **ids))
+                                    **movie['movie']['ids']))
 
 
 @router.route('/library/add/show')
@@ -258,7 +271,7 @@ def sync_movie_lists(refresh=False):
             pass
         if imdbid in in_library:
             continue
-        create_movie(movie['movie']['ids'], tag='collection')
+        create_movie(movie, tag='collection')
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
@@ -288,9 +301,9 @@ def sync_movie_lists(refresh=False):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
                 continue
-            create_movie(movie['movie']['ids'], tag=slug)
+            create_movie(movie, tag=slug)
         
-        create_trakt_playlist('{} Movies'.format(slug), slug)
+        create_trakt_playlist(user, slug, 'movies')
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
     progress.close()
     
@@ -313,7 +326,7 @@ def sync_movie_watchlist(refresh=False):
         imdbid = movie['movie']['ids']['imdb']
         if imdbid in in_library:
             continue
-        create_movie(movie['movie']['ids'], tag='watchlist')
+        create_movie(movie, tag='watchlist')
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
@@ -438,6 +451,8 @@ def sync_tv_lists(refresh=False):
                     if (int(season), int(ep_num)) in have_episodes:
                         continue
                     create_episode(ids, name, season, ep_num)
+            create_trakt_playlist(user, slug, 'shows')
+            create_trakt_playlist(user, slug, 'episodes')
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
     progress.close()
     
