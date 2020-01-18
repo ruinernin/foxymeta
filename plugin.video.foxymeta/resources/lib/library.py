@@ -73,12 +73,59 @@ def library_episodes(tvshowid):
             for episode in result['episodes']]
 
 
-def imdb_nfo(imdbid):
-    return 'http://www.imdb.com/title/{}/'.format(imdbid)
+def imdb_nfo(movie, tag):
+    imdbid = movie['movie']['ids']['imdb']
+    imdb_str = 'http://www.imdb.com/title/{}/'.format(imdbid)
+    
+    movie_root = ElementTree.Element('movie')
+    dateadded_node = ElementTree.SubElement(movie_root, 'dateadded')
+    dateadded_node.text = movie.get('listed_at', '')
+    
+    ratings_node = ElementTree.SubElement(movie_root, 'ratings')
+    imdb_node = ElementTree.SubElement(ratings_node, 'rating')
+    imdb_node.attrib = {'name': 'imdb', 'max': '10'}
+    imdb_value = ElementTree.SubElement(imdb_node, 'value')
+    imdb_value.text = str(movie['movie'].get('rating', ''))
+    imdb_votes = ElementTree.SubElement(imdb_node, 'votes')
+    imdb_votes.text = str(movie['movie'].get('votes', ''))
+    
+    outline_node = ElementTree.SubElement(movie_root, 'plot')
+    outline_node.text = movie['movie'].get('overview', '')
+    mpaa_node = ElementTree.SubElement(movie_root, 'mpaa')
+    mpaa_node.text = movie['movie'].get('certification', '')
+    premiered_node = ElementTree.SubElement(movie_root, 'premiered')
+    premiered_node.text = movie['movie'].get('released', '')
+    
+    # crashes in this block with Nausicaä
+    for tag in ['title', 'tagline', 'runtime', 'country', 'director', 'year',
+                'trailer']:
+        tag_node = ElementTree.SubElement(movie_root, tag)
+        tag_node.text = u'{}'.format(movie['movie'].get(tag, ''))
+    
+    for id in movie['movie']['ids']:
+        id_node = ElementTree.SubElement(movie_root, 'uniqueid')
+        id_node.attrib = {'type': id, 'default': 'true' if id == 'imdb' else 'false'}
+        id_node.text = u'{}'.format(movie['movie']['ids'][id])
+        
+    for genre in movie['movie']['genres']:
+        genre_node = ElementTree.SubElement(movie_root, 'genre')
+        genre_node.text = u'{}'.format(genre.capitalize())
+    
+    if tag:
+        tag_node = ElementTree.SubElement(movie_root, 'tag')
+        tag_node.text = u'{}'.format(tag)
+    
+    xml = ElementTree.tostring(movie_root)
+    new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
+    nfo_str = new_xml + '\n\n' + imdb_str
+            
+    return nfo_str
 
 
 def tvdb_nfo(tvdbid):
-    return 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
+    tvdb_str = 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
+    
+    return tvdb_str
     
     
 def create_trakt_playlist(user, slug, type):
