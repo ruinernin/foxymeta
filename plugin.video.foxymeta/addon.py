@@ -34,10 +34,6 @@ def root():
                                     router.build_url(tv.trakt_personal),
                                     xbmcgui.ListItem('My TV Shows'),
                                     True)
-    xbmcplugin.addDirectoryItem(router.handle,
-                                router.build_url(open_library),
-                                xbmcgui.ListItem('Open Foxy Library'),
-                                False)
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -109,4 +105,5 @@ def save_trakt_auth(response):
 
 if __name__ == '__main__':
     xbmcplugin.setContent(router.handle, 'movies')
+    library.add_sources()
     router.run()

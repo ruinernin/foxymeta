@@ -2,6 +2,7 @@ import errno
 import os
 import shutil
 import time
+import xml.etree.ElementTree
 
 import xbmc
 import xbmcgui
@@ -23,6 +24,28 @@ def mkdir(path):
             raise
     else:
         return True
+
+
+def add_sources():
+    sources = xbmc.translatePath('special://userdata/sources.xml')
+    tv_lib = router.addon_data_dir + '/Library/TV/'
+    movie_lib = router.addon_data_dir + '/Library/Movies/'
+    tree = xml.etree.ElementTree.parse(sources)
+    root = tree.getroot()
+    video = root.find('video')
+    paths = [source.find('path').text for source in video.findall('source')]
+    updated = False
+    for lib, _name in ((movie_lib, 'Movies'), (tv_lib, 'TV')):
+        if lib not in paths:
+            source = xml.etree.ElementTree.SubElement(video, 'source')
+            name = xml.etree.ElementTree.SubElement(source, 'name')
+            name.text = "FoxyMeta " + _name
+            path = xml.etree.ElementTree.SubElement(source, 'path',
+                                                    pathversion='1')
+            path.text = lib
+            updated = True
+    if updated:
+        tree.write(sources)
 
 
 def imdb_nfo(imdbid):
@@ -76,7 +99,10 @@ def create_episode(tvdbid, name, season, episode):
     if os.path.exists(ep_file):
         return
     with open(ep_file, 'w') as strm:
-        strm.write(player.foxy_tv_uri(tvdbid, season, episode))
+        strm.write(router.build_url(player.play_episode,
+                                    _id=tvdbid,
+                                    season=season,
+                                    episode=episode))
 
 
 def library_imdbids():

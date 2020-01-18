@@ -1,5 +1,6 @@
 import datetime
 
+from . import player
 from . import metadata
 from . import ui
 from .player import foxy_tv_uri
@@ -133,9 +134,11 @@ def tv_season(tvdbid=None, season=None):
     for episode in metadata.tvdb_season(tvdbid, season):
         li = ui.episode_listitem(tvdb_data=episode)
         xbmcplugin.addDirectoryItem(router.handle,
-                                    foxy_tv_uri(tvdbid,
-                                               episode['airedSeason'],
-                                               episode['airedEpisodeNumber']),
+                                    router.build_url(
+                                        player.play_episode,
+                                        _id=tvdbid,
+                                        season=episode['airedSeason'],
+                                        episode=episode['airedEpisodeNumber']),
                                     li,
                                     False)
     xbmcplugin.endOfDirectory(router.handle)

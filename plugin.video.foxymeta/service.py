@@ -2,12 +2,14 @@ import random
 
 import xbmc
 
+from resources.lib.player import FoxyPlayer
 from resources.lib import library
 from resources.lib.router import router
 
 
 def main():
     monitor = xbmc.Monitor()
+    player = FoxyPlayer()
     while not monitor.abortRequested():
         if not router.addon.getSettingString('trakt.access_token'):
             return

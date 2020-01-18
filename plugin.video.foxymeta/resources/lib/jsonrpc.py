@@ -97,6 +97,15 @@ def movie_library_id(title):
     return result['movies'][0]['movieid']
 
 
+def set_episode_runtime(episodeid, seconds):
+    """Convienence function to set runtime."""
+    params = {
+        'episodeid': episodeid,
+        'runtime': seconds,
+    }
+    return rpc('VideoLibrary.SetEpisodeDetails', **params)
+
+
 def set_episode_resume(episodeid, seconds):
     """Convienence function to set resume time."""
     params = {
