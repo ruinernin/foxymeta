@@ -1,3 +1,5 @@
+import calendar
+import datetime
 import functools
 
 from .router import router
@@ -20,7 +22,7 @@ def trakt_movie(imdbid, extended='full'):
 
 def trakt_search(_type='movie', query=None, page=1):
     path = 'search/{}'.format(_type)
-    result = trakt.get(path, query=query, extended='full', page=1)
+    result = trakt.get(path, query=query, extended='full', page=page)
     return result
 
 
@@ -123,41 +125,46 @@ def trakt_list(user, list_id, _type):
 
 
 @router.memcache
-@tvdb.jwt_auth
-def tvdb_show(jwt, tvdb_seriesid):
+def tvdb_show(tvdb_seriesid):
     path = 'series/{}'.format(tvdb_seriesid)
-    result = tvdb.get(jwt, path)['data']
+    result = tvdb.get(path)['data']
     path = 'series/{}/episodes/summary'.format(tvdb_seriesid)
-    result.update(tvdb.get(jwt, path)['data'])
+    result.update(tvdb.get(path)['data'])
     return result
 
 
-@tvdb.jwt_auth
-def tvdb_show_images(jwt, tvdb_seriesid, keyType='fanart'):
+def tvdb_show_images(tvdb_seriesid, keyType='fanart'):
     path = 'series/{}/images/query'.format(tvdb_seriesid)
-    result = tvdb.get(jwt, path, keyType=keyType)
+    result = tvdb.get(path, keyType=keyType)
     return result
 
 
-@tvdb.jwt_auth
-def tvdb_season(jwt, tvdb_seriesid, season):
+def tvdb_season(tvdb_seriesid, season):
     path = 'series/{}/episodes/query'.format(tvdb_seriesid)
-    result = tvdb.get(jwt, path, airedSeason=season)['data']
+    result = tvdb.get(path, airedSeason=season)['data']
     return result
 
 
-@tvdb.jwt_auth
-def tvdb_episode(jwt, tvdb_episodeid):
+def tvdb_episode(tvdb_episodeid):
     path = 'episodes/{}'.format(tvdb_episodeid)
-    result = tvdb.get(jwt, path)
+    result = tvdb.get(path)
     return result
 
 
-@tvdb.jwt_auth
-def tvdb_updates(jwt, epoch):
+def tvdb_updates(epoch):
     path = 'updated/query'
-    result = tvdb.get(jwt, path, fromTime=epoch)['data']
+    result = tvdb.get(path, fromTime=epoch)['data']
     return result
+
+
+def tvdb_airdate_epoch(airdate):
+    epoch = calendar.timegm(
+        datetime.datetime.strptime(
+            airdate,
+            '%Y-%m-%d'
+        ).utctimetuple()
+    )
+    return epoch
 
 
 @router.memcache

@@ -1,4 +1,5 @@
 import errno
+import json
 import os
 import shutil
 import time
@@ -146,6 +147,26 @@ def sync_movie_collection(refresh=False):
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
 
 
+def aired_since():
+    future_checks = json.loads(router.addon.getSetting(
+        'library.sync.traktcollection.tv.future_checks'))
+    future_checks = {int(k): v for k, v in future_checks.items()}
+    aired = [_id for _id, ts in future_checks.items() if ts < time.time()]
+    for _id in aired:
+        del future_checks[_id]
+    router.addon.setSetting('library.sync.traktcollection.tv.future_checks',
+                            json.dumps(future_checks))
+    return aired
+
+
+def future_check(tvdbid, epoch):
+    future_checks = json.loads(router.addon.getSetting(
+        'library.sync.traktcollection.tv.future_checks'))
+    future_checks[tvdbid] = epoch
+    router.addon.setSetting('library.sync.traktcollection.tv.future_checks',
+                            json.dumps(future_checks))
+
+
 @router.route('/library/sync/tv')
 def sync_show_collection(refresh=False):
     progress = xbmcgui.DialogProgressBG()
@@ -160,12 +181,15 @@ def sync_show_collection(refresh=False):
             if (time.time() - lastupdate) < (3600 * 24 * 7):
                 updates = [show['id']
                            for show in metadata.tvdb_updates(lastupdate)]
+                updates.extend(aired_since())
+            else:
+                refresh = True
         shows = metadata.trakt_collection(_type='shows')
         in_library = library_shows_tvdbid()
         for i, show in enumerate(shows):
             tvdbid = show['show']['ids']['tvdb']
             name = show['show']['title']
-            if updates is not None:
+            if not refresh:
                 if (tvdbid in in_library) and (tvdbid not in updates):
                     continue
             create_show(tvdbid)
@@ -178,9 +202,25 @@ def sync_show_collection(refresh=False):
                     continue
                 for episode in metadata.tvdb_season(tvdbid, season):
                     ep_num = episode['airedEpisodeNumber']
+                    if 'firstAired' in episode:
+                        air_date = metadata.tvdb_airdate_epoch(
+                            episode['firstAired']
+                        )
+                        if air_date > time.time():
+                            break
+                    else:
+                        air_date = None
+                        break
                     if (int(season), int(ep_num)) in have_episodes:
                         continue
                     create_episode(tvdbid, name, season, ep_num)
+                else:
+                    continue
+                # Found unaired episodes, save the future air date to recheck
+                # on. If there is none rely on updates.
+                if air_date:
+                    future_check(tvdbid, air_date)
+                break
             progress.update(int((float(i) / len(shows)) * 100))
         router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
                                    int(time.time()))
