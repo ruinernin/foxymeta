@@ -184,7 +184,7 @@ def create_movie(movie, tag=''):
     if not mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
-        nfo.write(imdb_nfo(movie, tag))
+        nfo.write(imdb_nfo(movie, tag).encode('utf-8'))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
         strm.write(router.build_url(player.play_movie,
                                     get_metadata=False,
