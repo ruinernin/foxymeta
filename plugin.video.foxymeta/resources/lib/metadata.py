@@ -12,6 +12,10 @@ from .apis import tvdb
 trakt.get = functools.partial(trakt.get,
                               auth_token=router.addon.getSettingString(
                                   'trakt.access_token'))
+                                  
+trakt.get_all = functools.partial(trakt.get_all,
+                              auth_token=router.addon.getSettingString(
+                                  'trakt.access_token'))
 
 
 def trakt_movie(imdbid, extended='full'):
@@ -20,9 +24,12 @@ def trakt_movie(imdbid, extended='full'):
     return result
 
 
-def trakt_search(_type='movie', query=None, page=1):
+def trakt_search(_type='movie', query=None, page=1, all=False):
     path = 'search/{}'.format(_type)
-    result = trakt.get(path, query=query, extended='full', page=page)
+    if all:
+        result = list(trakt.get_all(path, query=query, extended='full'))
+    else:
+        result = trakt.get(path, query=query, extended='full', page=page)
     return result
 
 
@@ -32,9 +39,12 @@ def trakt_recommended(_type='movies'):
     return result
 
 
-def trakt_movies(_list='popular', page=1):
+def trakt_movies(_list='popular', page=1, all=False):
     path = 'movies/{}'.format(_list)
-    result = trakt.get(path, extended='full', page=page)
+    if all:
+        result = list(trakt.get_all(path, extended='full'))
+    else:
+        result = trakt.get(path, extended='full', page=page)
     final = []
     # Some calls return items nested amongst data we don't care about such as
     # played/collected/watched counts, strip it and have homogenous API.
@@ -46,9 +56,12 @@ def trakt_movies(_list='popular', page=1):
     return final
 
 
-def trakt_shows(_list='popular', page=1):
+def trakt_shows(_list='popular', page=1, all=False):
     path = 'shows/{}'.format(_list)
-    result = trakt.get(path, extended='full', page=page)
+    if all:
+        result = list(trakt.get_all(path, extended='full'))
+    else:
+        result = trakt.get(path, extended='full', page=page)
     final = []
     # Some calls return items nested amongst data we don't care about such as
     # played/collected/watched counts, strip it and have homogenous API.
@@ -98,19 +111,31 @@ def trakt_personal_lists():
 
 
 def trakt_users_lists(user):
-    path = '/users/{}/lists'.format(user)
+    path = 'users/{}/lists'.format(user)
     result = trakt.get(path)
     return result
 
 
-def trakt_liked_lists(page=1):
-    path = '/users/likes/lists'
-    result = trakt.get(path, page=page)
+def trakt_liked_lists(page=1, all=False):
+    path = 'users/likes/lists'
+    if all:
+        result = list(trakt.get_all(path))
+    else:
+        result = trakt.get(path, page=page)
     return result
 
 
 def trakt_collection(_type='movies', extended=False):
-    path = '/sync/collection/{}'.format(_type)
+    path = 'sync/collection/{}'.format(_type)
+    if extended:
+        result = trakt.get(path, extended='full')
+    else:
+        result = trakt.get(path)
+    return result
+    
+    
+def trakt_watchlist(_type='movies', extended=False):
+    path = 'sync/watchlist/{}'.format(_type)
     if extended:
         result = trakt.get(path, extended='full')
     else:
@@ -118,8 +143,11 @@ def trakt_collection(_type='movies', extended=False):
     return result
 
 
-def trakt_list(user, list_id, _type):
-    path = '/users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+def trakt_list(user, list_id, _type, items=True):
+    if items:
+        path = 'users/{}/lists/{}/items/{}'.format(user, list_id, _type)
+    else:
+        path = 'users/{}/lists/{}'.format(user, list_id)
     result = trakt.get(path, extended='full')
     return result
 
@@ -197,13 +225,13 @@ def tmdb_trending(page=1, media_type='movie', time_window='week'):
 
 @router.cache()
 def tvdb_poster(tvdbid):
-    path = tvdb_show(tvdbid)['poster']
+    path = tvdb_show(tvdbid).get('poster', '')
     return tvdb.IMAGE_URI + path
 
 
 @router.cache()
 def tvdb_fanart(tvdbid):
-    path = tvdb_show(tvdbid)['fanart']
+    path = tvdb_show(tvdbid).get('fanart', '')
     return tvdb.IMAGE_URI + path
 
 

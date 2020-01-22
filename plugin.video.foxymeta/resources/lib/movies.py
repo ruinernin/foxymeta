@@ -11,6 +11,7 @@ from .router import router
 from .apis import tmdb
 from . import ui
 
+_trakt_access_token = router.addon.getSettingString('trakt.access_token')
 
 
 TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
@@ -18,6 +19,7 @@ TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
 
 @router.route('/movies')
 def root():
+    xbmcplugin.setContent(router.handle, 'files')
     router.gui_dirlist([(search, 'Search'),
                         (popular, 'Popular'),
                         (trending, 'Trending'),
@@ -32,6 +34,7 @@ def root():
 
 @router.route('/movies/trakt')
 def trakt_personal():
+    xbmcplugin.setContent(router.handle, 'files')
     router.gui_dirlist([(recommended, 'Recommended'),
                         (collection, 'Collection'),
                         (personal_lists, 'Personal Lists'),
@@ -59,6 +62,8 @@ def ui_trakt_list_movies(func, period=False):
                                                      page=int(page)+1),
                                     xbmcgui.ListItem('Next'),
                                     True)
+    
+        xbmcplugin.setContent(router.handle, 'movies')
         xbmcplugin.endOfDirectory(router.handle)
     return wrapper
 
@@ -121,6 +126,7 @@ def search(query=None):
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
                                     li, False)
+    xbmcplugin.setContent(router.handle, 'movies')
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -139,6 +145,7 @@ def recommended():
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
                                     li, False)
+    xbmcplugin.setContent(router.handle, 'movies')
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -151,10 +158,25 @@ def collection():
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
                                     li, False)
+    xbmcplugin.setContent(router.handle, 'movies')
+    xbmcplugin.endOfDirectory(router.handle)
+    
+    
+@router.route('/movies/trakt/watchlist')
+def watchlist():
+    for item in metadata.trakt_watchlist(_type='movies', extended=True):
+        movie = item['movie']
+        li = ui.movie_listitem(trakt_data=movie)
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(router.handle,
+                                    router.build_url(player.play_movie,
+                                                     **movie['ids']),
+                                    li, False)
+    xbmcplugin.setContent(router.handle, 'movies')
     xbmcplugin.endOfDirectory(router.handle)
 
 
-@router.route('/trakt/personal_lists')
+@router.route('/movies/trakt/personal_lists')
 def personal_lists():
     for _list in metadata.trakt_personal_lists():
         li = xbmcgui.ListItem(_list['name'])
@@ -164,6 +186,7 @@ def personal_lists():
         xbmcplugin.addDirectoryItem(router.handle,
                                     url,
                                     li, True)
+    xbmcplugin.setContent(router.handle, 'files')
     xbmcplugin.endOfDirectory(router.handle)
 
 
@@ -181,10 +204,11 @@ def liked_lists(page=1):
                                 router.build_url(liked_lists, page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
+    xbmcplugin.setContent(router.handle, 'files')
     xbmcplugin.endOfDirectory(router.handle)
 
 
-@router.route('/trakt/list')
+@router.route('/movies/trakt/list')
 def trakt_list(user, list_id):
     for item in metadata.trakt_list(user, list_id, 'movies'):
         movie = item['movie']
@@ -196,6 +220,7 @@ def trakt_list(user, list_id):
                                     router.build_url(player.play_movie,
                                                      **movie['ids']),
                                     li, False)
+    xbmcplugin.setContent(router.handle, 'files')
     xbmcplugin.addSortMethod(router.handle, xbmcplugin.SORT_METHOD_DATEADDED)
     xbmcplugin.endOfDirectory(router.handle)
 
@@ -217,4 +242,5 @@ def tmdb_trending(media_type='movie', page=1):
                                                  page=int(page)+1),
                                 xbmcgui.ListItem('Next'),
                                 True)
+    xbmcplugin.setContent(router.handle, 'movies')
     xbmcplugin.endOfDirectory(router.handle)

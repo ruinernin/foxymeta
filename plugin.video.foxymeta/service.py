@@ -15,11 +15,21 @@ def main():
             while player.isPlayingVideo():
                 if monitor.waitForAbort(300):
                     return
-            if router.addon.getSettingBool(
-                   'library.sync.traktcollection.movies'):
-                library.sync_movie_collection()
-            if router.addon.getSettingBool('library.sync.traktcollection.tv'):
-                library.sync_show_collection()
+    
+        if router.addon.getSettingBool('library.sync.traktcollection.movies'):
+            library.sync_movie_collection()
+        if router.addon.getSettingBool('library.sync.traktcollection.tv'):
+            library.sync_show_collection()
+            
+        if router.addon.getSettingBool('library.sync.traktwatchlist.movies'):
+            library.sync_movie_watchlist()
+        if router.addon.getSettingBool('library.sync.traktwatchlist.tv'):
+            library.sync_show_watchlist()
+            
+        if router.addon.getSettingString('library.sync.chosen_lists'):
+            library.sync_movie_lists()
+            library.sync_tv_lists()
+            
         sleep_mins = 45 + int(random.random() * 15)
         if monitor.waitForAbort(sleep_mins * 60):
             return
