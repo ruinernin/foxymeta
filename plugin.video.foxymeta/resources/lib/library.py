@@ -231,6 +231,7 @@ def create_episode(ids, name, season, episode, tag=''):
 
 @router.route('/library/sync/lists/choose')
 def choose_lists():
+    trakt_username = router.addon.getSettingString('trakt.username')
     old_choices = router.addon.getSettingString('library.sync.chosen_lists').split(',')
     slugs = []
     names = []
@@ -238,10 +239,13 @@ def choose_lists():
     chosen_slugs = []
     options = []
     
-    for list in metadata.trakt_personal_lists():
-        if 'ids' not in list:
-            list = list['list']
-        
+    lists = []
+    lists.extend([metadata.trakt_personal_lists()])
+    xbmc.log('personal: {}'.format(lists))
+    lists.extend([metadata.trakt_liked_lists(all=True)])
+    xbmc.log('all: {}'.format(lists))
+    
+    for list in lists[0]:
         slug ='{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
         name = list['name']
         username = list['user']['username']
@@ -251,24 +255,23 @@ def choose_lists():
         
         item = xbmcgui.ListItem(name)
         options.append(item)
+    
+    for page in lists[1]:
+        for list in page:
+            list = list['list']
         
-        if slug in old_choices:
-            preselect.append(slugs.index(slug))
+            slug ='{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
+            name = list['name']
+            username = list['user']['username']
+            liked_title = '{} by {}'.format(name, username)
+            description = list['description']
+            slugs.append(slug)
+            names.append(name)
+            
+            item = xbmcgui.ListItem(liked_title)
+            options.append(item)
 
-    for list in metadata.trakt_liked_lists(all=True):
-        if 'ids' not in list:
-            list = list[0]['list']
-        
-        slug = '{}.{}'.format(list['ids']['slug'], list['user']['ids']['slug'])
-        name = list['name']
-        username = list['user']['username']
-        description = list['description']
-        slugs.append(slug)
-        names.append(name)
-        
-        item = xbmcgui.ListItem('{} by {}'.format(name, username))
-        options.append(item)
-        
+    for slug in slugs:
         if slug in old_choices:
             preselect.append(slugs.index(slug))
     
