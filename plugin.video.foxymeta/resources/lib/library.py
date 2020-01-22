@@ -85,59 +85,57 @@ def library_episodes(tvshowid):
             for episode in result['episodes']]
 
 
-def imdb_nfo(movie, tag):
-    imdbid = movie['movie']['ids']['imdb']
-    imdb_str = 'http://www.imdb.com/title/{}/'.format(imdbid)
+def create_nfo(item, library_tag=''):
+    _type = item['type']
+    _id = item[_type]['ids']['imdb' if _type == 'movie' else 'tvdb']
     
-    movie_root = ElementTree.Element('movie')
-    dateadded_node = ElementTree.SubElement(movie_root, 'dateadded')
-    dateadded_node.text = movie.get('listed_at', '')
+    url_str = 'http://www.imdb.com/title/{}/'.format(_id) if _type == 'movie' else 'http://thetvdb.com/?tab=series&id={}'.format(_id)
     
-    ratings_node = ElementTree.SubElement(movie_root, 'ratings')
+    root = ElementTree.Element('movie' if _type == 'movie' else 'tvshow')
+    dateadded_node = ElementTree.SubElement(root, 'dateadded')
+    dateadded_node.text = item.get('listed_at', '')
+    
+    item = item[_type]
+    
+    ratings_node = ElementTree.SubElement(root, 'ratings')
     imdb_node = ElementTree.SubElement(ratings_node, 'rating')
     imdb_node.attrib = {'name': 'imdb', 'max': '10'}
     imdb_value = ElementTree.SubElement(imdb_node, 'value')
-    imdb_value.text = str(movie['movie'].get('rating', ''))
+    imdb_value.text = u'{}'.format(item.get('rating', ''))
     imdb_votes = ElementTree.SubElement(imdb_node, 'votes')
-    imdb_votes.text = str(movie['movie'].get('votes', ''))
+    imdb_votes.text = u'{}'.format(item.get('votes', ''))
     
-    outline_node = ElementTree.SubElement(movie_root, 'plot')
-    outline_node.text = movie['movie'].get('overview', '')
-    mpaa_node = ElementTree.SubElement(movie_root, 'mpaa')
-    mpaa_node.text = movie['movie'].get('certification', '')
-    premiered_node = ElementTree.SubElement(movie_root, 'premiered')
-    premiered_node.text = movie['movie'].get('released', '')
+    outline_node = ElementTree.SubElement(root, 'plot')
+    outline_node.text = item.get('overview', '')
+    mpaa_node = ElementTree.SubElement(root, 'mpaa')
+    mpaa_node.text = item.get('certification', '')
+    premiered_node = ElementTree.SubElement(root, 'premiered')
+    premiered_node.text = item.get('release' if _type == 'movie' else 'first_aired', '')
     
-    # crashes in this block with Nausicaa
+    if _type == 'show':
+        studio_node = ElementTree.SubElement(root, 'studio')
+        studio_node.text = item.get('network', '')
+        episode_node = ElementTree.SubElement(root, 'episode')
+        episode_node.text = u'{}'.format(item.get('aired_episodes', ''))
+    
     for tag in ['title', 'tagline', 'runtime', 'country', 'director', 'year',
-                'trailer']:
-        tag_node = ElementTree.SubElement(movie_root, tag)
-        tag_node.text = u'{}'.format(movie['movie'].get(tag, ''))
-    
-    for id in movie['movie']['ids']:
-        id_node = ElementTree.SubElement(movie_root, 'uniqueid')
-        id_node.attrib = {'type': id, 'default': 'true' if id == 'imdb' else 'false'}
-        id_node.text = u'{}'.format(movie['movie']['ids'][id])
+                'trailer', 'status']:
+        tag_node = ElementTree.SubElement(root, tag)
+        tag_node.text = u'{}'.format(item.get(tag, ''))
         
-    for genre in movie['movie']['genres']:
-        genre_node = ElementTree.SubElement(movie_root, 'genre')
+    for genre in item['genres']:
+        genre_node = ElementTree.SubElement(root, 'genre')
         genre_node.text = u'{}'.format(genre.capitalize())
+        
+    if library_tag:
+        tag_node = ElementTree.SubElement(root, 'tag')
+        tag_node.text = u'{}'.format(library_tag)
     
-    if tag:
-        tag_node = ElementTree.SubElement(movie_root, 'tag')
-        tag_node.text = u'{}'.format(tag)
-    
-    xml = ElementTree.tostring(movie_root)
+    xml = ElementTree.tostring(root)
     new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
-    nfo_str = new_xml + '\n\n' + imdb_str
+    nfo_str = new_xml + '\n\n' + url_str
             
     return nfo_str
-
-
-def tvdb_nfo(tvdbid):
-    tvdb_str = 'http://thetvdb.com/?tab=series&id={}'.format(tvdbid)
-    
-    return tvdb_str
     
     
 def create_trakt_playlist(user, slug, type):
@@ -190,7 +188,7 @@ def create_movie(movie, tag=''):
     if not mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
-        nfo.write(imdb_nfo(movie, tag).encode('utf-8'))
+        nfo.write(create_nfo(movie, tag).encode('utf-8'))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
         strm.write(router.build_url(player.play_movie,
                                     get_metadata=False,
@@ -198,21 +196,13 @@ def create_movie(movie, tag=''):
 
 
 @router.route('/library/add/show')
-def create_show(ids, tag=''):
-    tvdbid = ids['tvdb']
+def create_show(show, tag=''):
+    tvdbid = show['show']['ids']['tvdb']
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
         return
     with open('{}/tvshow.nfo'.format(show_dir), 'w') as nfo:
-        if tag:
-            show_root = ElementTree.Element('tvshow')
-            tag_node = ElementTree.SubElement(show_root, 'tag')
-            tag_node.text = tag
-            xml = ElementTree.tostring(show_root, 'utf-8')
-            new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
-            nfo.write(new_xml)
-    
-        nfo.write(tvdb_nfo(tvdbid))
+        nfo.write(create_nfo(show, tag).encode('utf-8'))
 
 
 @router.route('/library/add/episode')
@@ -304,7 +294,7 @@ def sync_movie_collection(refresh=False):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
                 continue
-            create_movie(movie, tag='collection')
+            create_movie(movie, 'collection')
             if i % 10 == 0:
                 progress.update(int((float(i) / len(movies)) * 100))
     finally:
@@ -335,7 +325,7 @@ def sync_movie_lists(refresh=False):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
                 continue
-            create_movie(movie, tag=slug)
+            create_movie(movie, slug)
         
         create_trakt_playlist(user, slug, 'movies')
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
@@ -360,7 +350,7 @@ def sync_movie_watchlist(refresh=False):
         imdbid = movie['movie']['ids']['imdb']
         if imdbid in in_library:
             continue
-        create_movie(movie, tag='watchlist')
+        create_movie(movie, 'watchlist')
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
@@ -417,7 +407,7 @@ def sync_show_collection(refresh=False):
             if not refresh:
                 if (tvdbid in in_library) and (tvdbid not in updates):
                     continue
-            create_show(ids, tag='collection')
+            create_show(show, 'collection')
             try:
                 have_episodes = library_episodes(in_library[tvdbid])
             except KeyError:
@@ -475,7 +465,7 @@ def sync_tv_lists(refresh=False):
             ids = show['show']['ids']
             tvdbid = ids['tvdb']
             name = show['show']['title']
-            create_show(ids, tag=slug)
+            create_show(show, slug)
             try:
                 have_episodes = library_episodes(in_library[tvdbid])
             except KeyError:
@@ -512,7 +502,7 @@ def sync_show_watchlist(refresh=False):
         ids = show['show']['ids']
         tvdbid = ids['tvdb']
         name = show['show']['title']
-        create_show(ids, tag='watchlist')
+        create_show(show, 'watchlist')
         try:
             have_episodes = library_episodes(in_library[tvdbid])
         except KeyError:
