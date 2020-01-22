@@ -9,7 +9,9 @@ from resources.lib.router import router
 
 def main():
     monitor = xbmc.Monitor()
+    library.add_sources()
     player = FoxyPlayer()
+        
     while not monitor.abortRequested():
         if router.addon.getSettingString('trakt.access_token'):
             while player.isPlayingVideo():

@@ -106,5 +106,4 @@ def save_trakt_auth(response):
 
 if __name__ == '__main__':
     xbmcplugin.setContent(router.handle, 'movies')
-    library.add_sources()
     router.run()
