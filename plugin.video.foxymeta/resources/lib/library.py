@@ -1,6 +1,7 @@
 import errno
 import json
 import os
+import re
 import shutil
 import time
 from xml.dom import minidom
@@ -25,6 +26,11 @@ def mkdir(path):
             raise
     else:
         return True
+        
+        
+def get_valid_filename(s):
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '', s)
         
 
 def clean_library(_type):
@@ -216,10 +222,10 @@ def create_episode(ids, name, season, episode, tag=''):
                                                      tvdbid,
                                                      season)
     mkdir(season_dir)
-    ep_file = '{}/{} - S{:02d}E{:02d}.strm'.format(season_dir,
-                                                   name,
-                                                   int(season),
-                                                   int(episode))
+    filename = get_valid_filename('{} - S{:02d}E{:02d}.strm'.format(name,
+                                                                    int(season),
+                                                                    int(episode)))
+    ep_file = '{}/{}'.format(season_dir, filename)
     if os.path.exists(ep_file):
         return
     with open(ep_file, 'w') as strm:
