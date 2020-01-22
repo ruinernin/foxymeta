@@ -41,22 +41,28 @@ def add_sources():
     sources = xbmc.translatePath('special://userdata/sources.xml')
     tv_lib = router.addon_data_dir + '/Library/TV/'
     movie_lib = router.addon_data_dir + '/Library/Movies/'
-    tree = xml.etree.ElementTree.parse(sources)
+    tree = ElementTree.parse(sources)
     root = tree.getroot()
     video = root.find('video')
     paths = [source.find('path').text for source in video.findall('source')]
     updated = False
     for lib, _name in ((movie_lib, 'Movies'), (tv_lib, 'TV')):
         if lib not in paths:
-            source = xml.etree.ElementTree.SubElement(video, 'source')
-            name = xml.etree.ElementTree.SubElement(source, 'name')
+            source = ElementTree.SubElement(video, 'source')
+            name = ElementTree.SubElement(source, 'name')
             name.text = "FoxyMeta " + _name
-            path = xml.etree.ElementTree.SubElement(source, 'path',
+            path = ElementTree.SubElement(source, 'path',
                                                     pathversion='1')
             path.text = lib
             updated = True
     if updated:
         tree.write(sources)
+
+
+def library_imdbids():
+    """Return a list of movie imdbids existing in library."""
+    result = jsonrpc.get_movies(properties=['imdbnumber'])
+    return [movie['imdbnumber'] for movie in result.get('movies', list())]
 
 
 def library_shows_tvdbid():
@@ -96,7 +102,7 @@ def imdb_nfo(movie, tag):
     premiered_node = ElementTree.SubElement(movie_root, 'premiered')
     premiered_node.text = movie['movie'].get('released', '')
     
-    # crashes in this block with Nausicaä
+    # crashes in this block with Nausicaa
     for tag in ['title', 'tagline', 'runtime', 'country', 'director', 'year',
                 'trailer']:
         tag_node = ElementTree.SubElement(movie_root, tag)
@@ -289,41 +295,13 @@ def sync_movie_collection(refresh=False):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
                 continue
-            create_movie(movie['movie']['ids'])
+            create_movie(movie, tag='collection')
             if i % 10 == 0:
                 progress.update(int((float(i) / len(movies)) * 100))
     finally:
         progress.close()
-    router.addon.setSettingString('trakt.last_sync_movies',
-                            time.strftime('%Y-%m-%d %H:%M:%S',
-                                          time.localtime(time.time())))
-    
-    xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
-    
-    
-@router.route('/library/sync/movies/lists')
-def sync_movie_lists(refresh=False):
-    progress = xbmcgui.DialogProgressBG()
-    progress.create('Adding Movies to Foxy Library')
-    if refresh:
-        clean_library('Movies')
-    lists = metadata.trakt_personal_lists()
-    liked = metadata.trakt_liked_lists(all=True)
-    lists.extend(liked)
-    in_library = library_imdbids()
-    for i, movie in enumerate(lists):
-        try:
-            imdbid = movie['movie']['ids']['imdb']
-        except:
-            pass
-        if imdbid in in_library:
-            continue
-        create_movie(movie, tag='collection')
-        if i % 10 == 0:
-            progress.update(int((float(i) / len(movies)) * 100))
-    progress.close()
-    
-    router.addon.setSettingString('trakt.last_sync_movies',
+        
+    router.addon.setSettingString('trakt.last_sync_movies_collection',
                             time.strftime('%Y-%m-%d %H:%M:%S',
                                           time.localtime(time.time())))
     
@@ -354,7 +332,7 @@ def sync_movie_lists(refresh=False):
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
     progress.close()
     
-    router.addon.setSettingString('trakt.last_sync_movie_lists',
+    router.addon.setSettingString('trakt.last_sync_movies_lists',
                             time.strftime('%Y-%m-%d %H:%M:%S',
                                           time.localtime(time.time())))
     
@@ -378,7 +356,7 @@ def sync_movie_watchlist(refresh=False):
             progress.update(int((float(i) / len(movies)) * 100))
     progress.close()
     
-    router.addon.setSettingString('trakt.last_sync_movies',
+    router.addon.setSettingString('trakt.last_sync_movies_watchlist',
                             time.strftime('%Y-%m-%d %H:%M:%S',
                                           time.localtime(time.time())))
     
@@ -462,6 +440,9 @@ def sync_show_collection(refresh=False):
             progress.update(int((float(i) / len(shows)) * 100))
         router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
                                    int(time.time()))
+        router.addon.setSettingString('trakt.last_sync_tv_collection',
+                            time.strftime('%Y-%m-%d %H:%M:%S',
+                                          time.localtime(time.time())))
     finally:
         progress.close()
     xbmc.executebuiltin('UpdateLibrary(video)', wait=True)
@@ -538,7 +519,7 @@ def sync_show_watchlist(refresh=False):
         progress.update(int((float(i) / len(shows)) * 100))
     progress.close()
     
-    router.addon.setSettingString('trakt.last_sync_shows',
+    router.addon.setSettingString('trakt.last_sync_tv_watchlist',
                             time.strftime('%Y-%m-%d %H:%M:%S',
                                           time.localtime(time.time())))
     
