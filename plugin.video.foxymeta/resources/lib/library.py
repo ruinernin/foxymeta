@@ -252,6 +252,35 @@ def create_show(show, tag=''):
     with open('{}/tvshow.nfo'.format(show_dir), 'w') as nfo:
         nfo.write(create_nfo(show, tag, 'show').encode('utf-8'))
     
+    try:
+        have_episodes = jsonrpc.library_episodes(in_library[tvdbid])
+    except KeyError:
+        have_episodes = ()
+    for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
+        if season == '0':
+            continue
+        for episode in metadata.tvdb_season(tvdbid, season):
+            ep_num = episode['airedEpisodeNumber']
+            if 'firstAired' in episode:
+                air_date = metadata.tvdb_airdate_epoch(
+                    episode['firstAired']
+                )
+                if air_date > time.time():
+                    break
+            else:
+                air_date = None
+                break
+            if (int(season), int(ep_num)) in have_episodes:
+                continue
+            create_episode(tvdbid, name, season, ep_num, tag)
+        else:
+            continue
+        # Found unaired episodes, save the future air date to recheck
+        # on. If there is none rely on updates.
+        if air_date:
+            future_check(tvdbid, air_date)
+        break
+    
     return True
 
 
@@ -363,6 +392,7 @@ def sync_movie_collection(refresh=False):
 def sync_movie_lists(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Movie Lists to Foxy Library')
+    try:
     if refresh:
         clean_library('Movies')
     
@@ -381,6 +411,7 @@ def sync_movie_lists(refresh=False):
         
         create_trakt_playlist(user, slug, 'movies')
         progress.update(int((float(i) / len(chosen_slugs)) * 100))
+    finally:
     progress.close()
     
     router.addon.setSettingString('trakt.last_sync_movies_lists',
@@ -394,6 +425,7 @@ def sync_movie_lists(refresh=False):
 def sync_movie_watchlist(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Watchlist Movies to Foxy Library')
+    try:
     if refresh:
         clean_library('Movies')
     movies = metadata.trakt_watchlist(_type='movies')
@@ -405,6 +437,7 @@ def sync_movie_watchlist(refresh=False):
         create_movie(movie, 'watchlist')
         if i % 10 == 0:
             progress.update(int((float(i) / len(movies)) * 100))
+    finally:
     progress.close()
     
     router.addon.setSettingString('trakt.last_sync_movies_watchlist',
@@ -460,34 +493,6 @@ def sync_show_collection(refresh=False):
                 if (tvdbid in in_library) and (tvdbid not in updates):
                     continue
             create_show(show, 'collection')
-            try:
-                have_episodes = library_episodes(in_library[tvdbid])
-            except KeyError:
-                have_episodes = ()
-            for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
-                if season == '0':
-                    continue
-                for episode in metadata.tvdb_season(tvdbid, season):
-                    ep_num = episode['airedEpisodeNumber']
-                    if 'firstAired' in episode:
-                        air_date = metadata.tvdb_airdate_epoch(
-                            episode['firstAired']
-                        )
-                        if air_date > time.time():
-                            break
-                    else:
-                        air_date = None
-                        break
-                    if (int(season), int(ep_num)) in have_episodes:
-                        continue
-                    create_episode(tvdbid, name, season, ep_num)
-                else:
-                    continue
-                # Found unaired episodes, save the future air date to recheck
-                # on. If there is none rely on updates.
-                if air_date:
-                    future_check(tvdbid, air_date)
-                break
             progress.update(int((float(i) / len(shows)) * 100))
         router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
                                    int(time.time()))
@@ -503,10 +508,22 @@ def sync_show_collection(refresh=False):
 def sync_tv_lists(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding TV Show Lists to Foxy Library')
+    try:
+        lastupdate = router.addon.getSettingInt(
+            'library.sync.traktcollection.tv.lastupdate')
+        updates = None
     if refresh:
         clean_library('TV')
+        else:
+            if (time.time() - lastupdate) < (3600 * 24 * 7):
+                updates = [show['id']
+                           for show in metadata.tvdb_updates(lastupdate)]
+                updates.extend(aired_since())
+            else:
+                refresh = True
     
-    chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
+        chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists')
+                                   .split(',')
     
     in_library = library_shows_tvdbid()
     
@@ -515,25 +532,14 @@ def sync_tv_lists(refresh=False):
         list = metadata.trakt_list(user, slug, 'shows')
         for show in list:
             ids = show['show']['ids']
-            tvdbid = ids['tvdb']
-            name = show['show']['title']
-            create_show(show, slug)
-            try:
-                have_episodes = library_episodes(in_library[tvdbid])
-            except KeyError:
-                have_episodes = ()
-            for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
-                if season == '0':
-                    continue
-                for episode in metadata.tvdb_season(tvdbid, season):
-                    ep_num = episode['airedEpisodeNumber']
-                    if (int(season), int(ep_num)) in have_episodes:
-                        continue
-                    create_episode(ids, name, season, ep_num)
-            create_trakt_playlist(user, slug, 'shows')
-            create_trakt_playlist(user, slug, 'episodes')
-        progress.update(int((float(i) / len(chosen_slugs)) * 100))
-    progress.close()
+                tvdbid = ids['tvdb']
+                name = show['show']['title']
+                create_show(show, slug)
+                create_trakt_playlist(user, slug, 'shows')
+                create_trakt_playlist(user, slug, 'episodes')
+            progress.update(int((float(i) / len(chosen_slugs)) * 100))
+    finally:
+        progress.close()
     
     router.addon.setSettingString('trakt.last_sync_tv_lists',
                             time.strftime('%Y-%m-%d %H:%M:%S',
@@ -546,8 +552,20 @@ def sync_tv_lists(refresh=False):
 def sync_show_watchlist(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Watchlist TV Shows to Foxy Library')
+    try:
+        lastupdate = router.addon.getSettingInt(
+            'library.sync.traktcollection.tv.lastupdate')
+        updates = None
     if refresh:
         clean_library('TV')
+        else:
+            if (time.time() - lastupdate) < (3600 * 24 * 7):
+                updates = [show['id']
+                           for show in metadata.tvdb_updates(lastupdate)]
+                updates.extend(aired_since())
+            else:
+                refresh = True
+                
     shows = metadata.trakt_watchlist(_type='shows')
     in_library = library_shows_tvdbid()
     for i, show in enumerate(shows):
@@ -555,19 +573,8 @@ def sync_show_watchlist(refresh=False):
         tvdbid = ids['tvdb']
         name = show['show']['title']
         create_show(show, 'watchlist')
-        try:
-            have_episodes = library_episodes(in_library[tvdbid])
-        except KeyError:
-            have_episodes = ()
-        for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
-            if season == '0':
-                continue
-            for episode in metadata.tvdb_season(tvdbid, season):
-                ep_num = episode['airedEpisodeNumber']
-                if (int(season), int(ep_num)) in have_episodes:
-                    continue
-                create_episode(ids, name, season, ep_num)
         progress.update(int((float(i) / len(shows)) * 100))
+    finally:
     progress.close()
     
     router.addon.setSettingString('trakt.last_sync_tv_watchlist',
