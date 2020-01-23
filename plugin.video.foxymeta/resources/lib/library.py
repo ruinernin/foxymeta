@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import time
+import unicodedata
 from xml.dom import minidom
 from xml.etree import ElementTree
 
@@ -26,12 +27,15 @@ def mkdir(path):
             raise
     else:
         return True
-        
-        
-def get_valid_filename(s):
-    s = str(s).strip().replace(' ', '_')
-    return re.sub(r'(?u)[^-\w.]', '', s)
-        
+
+
+def get_valid_filename(filename):
+    """Returns normalized ASCII filename."""
+    ascii_name = unicodedata.normalize('NFKD', filename).encode('ascii',
+                                                                'ignore')
+    ascii_name = ascii_name.replace(' ', '_')
+    return re.sub(r'[^\w.-]', '', ascii_name)
+
 
 def clean_library(_type):
     """Remove all `_type` ('Movies', 'TV') library files."""
