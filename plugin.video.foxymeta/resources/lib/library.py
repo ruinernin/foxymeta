@@ -157,7 +157,7 @@ def add_from_context(dbid, dbtype):
     status = 'Already in'
     if dbtype == 'movie':
         movie = metadata.trakt_movie(dbid)
-        if create_movie(movie):
+        if create_movie(movie, 'context'):
             status = 'Added to'
         xbmcgui.Dialog().notification('FoxyMeta', '{} ({}) {} Library'
                                                   .format(movie['title'],
@@ -165,7 +165,7 @@ def add_from_context(dbid, dbtype):
                                                           status))
     elif dbtype == 'tvshow': # TODO: MAKE THIS ADD EPISODES TOO
         show = metadata.trakt_show(dbid)
-        if create_show(show):
+        if create_show(show, 'context'):
             status = 'Added to'
         xbmcgui.Dialog().notification('FoxyMeta', '{} ({}) {} Library'
                                                   .format(show['title'],
@@ -181,7 +181,12 @@ def create_movie(movie, tag=''):
         ids = movie['movie']['ids']
         
     imdbid = ids['imdb']
-        
+    if tag == 'context':
+        if imdbid in jsonrpc.library_imdbids():
+            return
+        else:
+            tag = ''
+    
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not utils.mkdir(movie_dir):
         return
@@ -203,6 +208,11 @@ def create_show(show, tag=''):
         ids = show['show']['ids']
         
     tvdbid = ids['tvdb']
+    if tag == 'context':
+        if tvdbid in jsonrpc.library_shows_tvdbid():
+            return
+        else:
+            tag = ''
     
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not utils.mkdir(show_dir):
@@ -353,8 +363,8 @@ def sync_movie_lists(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Movie Lists to Foxy Library')
     try:
-    if refresh:
-        clean_library('Movies')
+        if refresh:
+            clean_library('Movies')
         
         chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
         
@@ -362,17 +372,17 @@ def sync_movie_lists(refresh=False):
         
         for i, chosen in enumerate(chosen_slugs):
             slug, user = chosen.split('.')
-        list = metadata.trakt_list(user, slug, 'movies')
-        for movie in list:
-            imdbid = movie['movie']['ids']['imdb']
-            if imdbid in in_library:
-                continue
-            create_movie(movie, slug)
-        
-        create_trakt_playlist(user, slug, 'movies')
-        progress.update(int((float(i) / len(chosen_slugs)) * 100))
+            list = metadata.trakt_list(user, slug, 'movies')
+            for movie in list:
+                imdbid = movie['movie']['ids']['imdb']
+                if imdbid in in_library:
+                    continue
+                create_movie(movie, slug)
+            
+            create_trakt_playlist(user, slug, 'movies')
+            progress.update(int((float(i) / len(chosen_slugs)) * 100))
     finally:
-    progress.close()
+        progress.close()
     
     router.addon.setSettingString('trakt.last_sync_movies_lists',
                             time.strftime('%Y-%m-%d %H:%M:%S',
@@ -393,12 +403,12 @@ def sync_movie_watchlist(refresh=False):
         for i, movie in enumerate(movies):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
-            continue
-        create_movie(movie, 'watchlist')
-        if i % 10 == 0:
-            progress.update(int((float(i) / len(movies)) * 100))
+                continue
+            create_movie(movie, 'watchlist')
+            if i % 10 == 0:
+                progress.update(int((float(i) / len(movies)) * 100))
     finally:
-    progress.close()
+        progress.close()
     
     router.addon.setSettingString('trakt.last_sync_movies_watchlist',
                             time.strftime('%Y-%m-%d %H:%M:%S',
@@ -472,8 +482,8 @@ def sync_tv_lists(refresh=False):
         lastupdate = router.addon.getSettingInt(
             'library.sync.traktcollection.tv.lastupdate')
         updates = None
-    if refresh:
-        clean_library('TV')
+        if refresh:
+            clean_library('TV')
         else:
             if (time.time() - lastupdate) < (3600 * 24 * 7):
                 updates = [show['id']
@@ -481,7 +491,7 @@ def sync_tv_lists(refresh=False):
                 updates.extend(aired_since())
             else:
                 refresh = True
-    
+        
         chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists')
                                    .split(',')
         
@@ -489,9 +499,9 @@ def sync_tv_lists(refresh=False):
         
         for i, chosen in enumerate(chosen_slugs):
             slug, user = chosen.split('.')
-        list = metadata.trakt_list(user, slug, 'shows')
-        for show in list:
-            ids = show['show']['ids']
+            list = metadata.trakt_list(user, slug, 'shows')
+            for show in list:
+                ids = show['show']['ids']
                 tvdbid = ids['tvdb']
                 name = show['show']['title']
                 create_show(show, slug)
@@ -516,8 +526,8 @@ def sync_show_watchlist(refresh=False):
         lastupdate = router.addon.getSettingInt(
             'library.sync.traktcollection.tv.lastupdate')
         updates = None
-    if refresh:
-        clean_library('TV')
+            if refresh:
+            clean_library('TV')
         else:
             if (time.time() - lastupdate) < (3600 * 24 * 7):
                 updates = [show['id']
@@ -531,11 +541,11 @@ def sync_show_watchlist(refresh=False):
         for i, show in enumerate(shows):
             ids = show['show']['ids']
             tvdbid = ids['tvdb']
-        name = show['show']['title']
-        create_show(show, 'watchlist')
-        progress.update(int((float(i) / len(shows)) * 100))
+            name = show['show']['title']
+            create_show(show, 'watchlist')
+            progress.update(int((float(i) / len(shows)) * 100))
     finally:
-    progress.close()
+        progress.close()
     
     router.addon.setSettingString('trakt.last_sync_tv_watchlist',
                             time.strftime('%Y-%m-%d %H:%M:%S',
