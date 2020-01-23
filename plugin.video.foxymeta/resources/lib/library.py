@@ -89,9 +89,18 @@ def library_episodes(tvshowid):
             for episode in result['episodes']]
 
 
-def create_nfo(item, library_tag=''):
-    _type = item['type']
-    _id = item[_type]['ids']['imdb' if _type == 'movie' else 'tvdb']
+def create_nfo(item, library_tag='', type=''):
+    if not type:
+        _type = item['type']
+    else:
+        _type = type
+    
+    if 'ids' in item:
+        ids = item['ids']
+    else:
+        ids = item[_type]['ids']
+        
+    _id = ids['imdb' if _type == 'movie' else 'tvdb']
     
     url_str = 'http://www.imdb.com/title/{}/'.format(_id) if _type == 'movie' else 'http://thetvdb.com/?tab=series&id={}'.format(_id)
     
@@ -99,7 +108,7 @@ def create_nfo(item, library_tag=''):
     dateadded_node = ElementTree.SubElement(root, 'dateadded')
     dateadded_node.text = item.get('listed_at', '')
     
-    item = item[_type]
+    item = item[_type] if _type in item else item
     
     ratings_node = ElementTree.SubElement(root, 'ratings')
     imdb_node = ElementTree.SubElement(ratings_node, 'rating')
@@ -183,30 +192,67 @@ def create_trakt_playlist(user, slug, type):
     
     with open(os.path.join(playlist_path, '{}.xsp'.format(info['name'])), 'w') as xsp:
         xsp.write(new_xml)
+        
+        
+@router.route('/library/add/context')
+def add_from_context(dbid, dbtype):
+    status = 'Already in'
+    if dbtype == 'movie':
+        movie = metadata.trakt_movie(dbid)
+        if create_movie(movie):
+            status = 'Added to'
+        xbmcgui.Dialog().notification('FoxyMeta', '{} ({}) {} Library'
+                                                  .format(movie['title'],
+                                                          movie['year'],
+                                                          status))
+    elif dbtype == 'tvshow': # TODO: MAKE THIS ADD EPISODES TOO
+        show = metadata.trakt_show(dbid)
+        if create_show(show):
+            status = 'Added to'
+        xbmcgui.Dialog().notification('FoxyMeta', '{} ({}) {} Library'
+                                                  .format(show['title'],
+                                                          show['year'],
+                                                          status))
 
     
 @router.route('/library/add/movie')
 def create_movie(movie, tag=''):
-    imdbid = movie['movie']['ids']['imdb']
+    if 'ids' in movie:
+        ids = movie['ids']
+    else:
+        ids = movie['movie']['ids']
+        
+    imdbid = ids['imdb']
+        
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
-        nfo.write(create_nfo(movie, tag).encode('utf-8'))
+        nfo.write(create_nfo(movie, tag, 'movie').encode('utf-8'))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
         strm.write(router.build_url(player.play_movie,
                                     get_metadata=False,
-                                    **movie['movie']['ids']))
+                                    **ids))
+    
+    return True
 
 
 @router.route('/library/add/show')
 def create_show(show, tag=''):
-    tvdbid = show['show']['ids']['tvdb']
+    if 'ids' in show:
+        ids = show['ids']
+    else:
+        ids = show['show']['ids']
+        
+    tvdbid = ids['tvdb']
+    
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not mkdir(show_dir):
         return
     with open('{}/tvshow.nfo'.format(show_dir), 'w') as nfo:
-        nfo.write(create_nfo(show, tag).encode('utf-8'))
+        nfo.write(create_nfo(show, tag, 'show').encode('utf-8'))
+    
+    return True
 
 
 @router.route('/library/add/episode')
@@ -227,6 +273,8 @@ def create_episode(ids, name, season, episode, tag=''):
                                     _id=tvdbid,
                                     season=season,
                                     episode=episode))
+                                    
+    return True
 
 
 @router.route('/library/sync/lists/choose')
