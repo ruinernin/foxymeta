@@ -156,16 +156,18 @@ def create_trakt_playlist(user, slug, type):
 def add_from_context(dbid, dbtype):
     status = 'Already in'
     if dbtype == 'movie':
+        in_library = jsonrpc.library_imdbids()
         movie = metadata.trakt_movie(dbid)
-        if create_movie(movie, 'context'):
+        if create_movie(movie, in_library, 'context'):
             status = 'Added to'
         xbmcgui.Dialog().notification('FoxyMeta', '{} ({}) {} Library'
                                                   .format(movie['title'],
                                                           movie['year'],
                                                           status))
-    elif dbtype == 'tvshow': # TODO: MAKE THIS ADD EPISODES TOO
+    elif dbtype == 'tvshow':
+        in_library = jsonrpc.library_shows_tvdbid()
         show = metadata.trakt_show(dbid)
-        if create_show(show, 'context'):
+        if create_show(show, in_library, 'context'):
             status = 'Added to'
         xbmcgui.Dialog().notification('FoxyMeta', '{} ({}) {} Library'
                                                   .format(show['title'],
@@ -174,18 +176,15 @@ def add_from_context(dbid, dbtype):
 
     
 @router.route('/library/add/movie')
-def create_movie(movie, tag=''):
+def create_movie(movie, in_library, tag=''):
     if 'ids' in movie:
         ids = movie['ids']
     else:
         ids = movie['movie']['ids']
         
     imdbid = ids['imdb']
-    if tag == 'context':
-        if imdbid in jsonrpc.library_imdbids():
-            return
-        else:
-            tag = ''
+    if imdbid in in_library:
+        return
     
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
     if not utils.mkdir(movie_dir):
@@ -201,18 +200,18 @@ def create_movie(movie, tag=''):
 
 
 @router.route('/library/add/show')
-def create_show(show, tag=''):
+def create_show(show, in_library, tag=''):
     if 'ids' in show:
         ids = show['ids']
+        name = show['title']
     else:
         ids = show['show']['ids']
+        name = show['show']['title']
         
     tvdbid = ids['tvdb']
-    if tag == 'context':
-        if tvdbid in jsonrpc.library_shows_tvdbid():
-            return
-        else:
-            tag = ''
+    
+    if tvdbid in in_library:
+        return
     
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
     if not utils.mkdir(show_dir):
@@ -240,7 +239,7 @@ def create_show(show, tag=''):
                 break
             if (int(season), int(ep_num)) in have_episodes:
                 continue
-            create_episode(tvdbid, name, season, ep_num, tag)
+            create_episode(ids, name, season, ep_num, tag)
         else:
             continue
         # Found unaired episodes, save the future air date to recheck
@@ -343,11 +342,8 @@ def sync_movie_collection(refresh=False):
         in_library = jsonrpc.library_imdbids()
         for i, movie in enumerate(movies):
             imdbid = movie['movie']['ids']['imdb']
-            if imdbid in in_library:
-                continue
-            create_movie(movie, 'collection')
-            if i % 10 == 0:
-                progress.update(int((float(i) / len(movies)) * 100))
+            create_movie(movie, in_library, 'collection')
+            progress.update(int((float(i) / len(movies)) * 100))
     finally:
         progress.close()
         
@@ -375,9 +371,7 @@ def sync_movie_lists(refresh=False):
             list = metadata.trakt_list(user, slug, 'movies')
             for movie in list:
                 imdbid = movie['movie']['ids']['imdb']
-                if imdbid in in_library:
-                    continue
-                create_movie(movie, slug)
+                create_movie(movie, in_library, slug)
             
             create_trakt_playlist(user, slug, 'movies')
             progress.update(int((float(i) / len(chosen_slugs)) * 100))
@@ -402,11 +396,9 @@ def sync_movie_watchlist(refresh=False):
         in_library = jsonrpc.library_imdbids()
         for i, movie in enumerate(movies):
             imdbid = movie['movie']['ids']['imdb']
-            if imdbid in in_library:
-                continue
-            create_movie(movie, 'watchlist')
-            if i % 10 == 0:
-                progress.update(int((float(i) / len(movies)) * 100))
+            create_movie(movie, in_library, 'watchlist')
+            
+            progress.update(int((float(i) / len(movies)) * 100))
     finally:
         progress.close()
     
@@ -458,11 +450,10 @@ def sync_show_collection(refresh=False):
         in_library = jsonrpc.library_shows_tvdbid()
         for i, show in enumerate(shows):
             tvdbid = show['show']['ids']['tvdb']
-            name = show['show']['title']
             if not refresh:
-                if (tvdbid in in_library) and (tvdbid not in updates):
+                if tvdbid not in updates:
                     continue
-            create_show(show, 'collection')
+            create_show(show, in_library, 'collection')
             progress.update(int((float(i) / len(shows)) * 100))
         router.addon.setSettingInt('library.sync.traktcollection.tv.lastupdate',
                                    int(time.time()))
@@ -492,8 +483,7 @@ def sync_tv_lists(refresh=False):
             else:
                 refresh = True
         
-        chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists')
-                                   .split(',')
+        chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
         
         in_library = jsonrpc.library_shows_tvdbid()
         
@@ -503,8 +493,10 @@ def sync_tv_lists(refresh=False):
             for show in list:
                 ids = show['show']['ids']
                 tvdbid = ids['tvdb']
-                name = show['show']['title']
-                create_show(show, slug)
+                if not refresh:
+                    if tvdbid not in updates:
+                        continue
+                create_show(show, in_library, slug)
                 create_trakt_playlist(user, slug, 'shows')
                 create_trakt_playlist(user, slug, 'episodes')
             progress.update(int((float(i) / len(chosen_slugs)) * 100))
@@ -526,7 +518,7 @@ def sync_show_watchlist(refresh=False):
         lastupdate = router.addon.getSettingInt(
             'library.sync.traktcollection.tv.lastupdate')
         updates = None
-            if refresh:
+        if refresh:
             clean_library('TV')
         else:
             if (time.time() - lastupdate) < (3600 * 24 * 7):
@@ -541,8 +533,10 @@ def sync_show_watchlist(refresh=False):
         for i, show in enumerate(shows):
             ids = show['show']['ids']
             tvdbid = ids['tvdb']
-            name = show['show']['title']
-            create_show(show, 'watchlist')
+            if not refresh:
+                if tvdbid not in updates:
+                    continue
+            create_show(show, in_library, 'watchlist')
             progress.update(int((float(i) / len(shows)) * 100))
     finally:
         progress.close()
