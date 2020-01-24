@@ -223,32 +223,41 @@ def create_show(show, in_library, tag=''):
         have_episodes = jsonrpc.library_episodes(in_library[tvdbid])
     except KeyError:
         have_episodes = ()
-    for season in metadata.tvdb_show(tvdbid)['airedSeasons']:
-        if season == '0':
-            continue
-        for episode in metadata.tvdb_season(tvdbid, season):
-            ep_num = episode['airedEpisodeNumber']
-            if 'firstAired' in episode:
-                air_date = metadata.tvdb_airdate_epoch(
-                    episode['firstAired']
-                )
-                if air_date > time.time():
-                    break
-            else:
-                air_date = None
-                break
-            if (int(season), int(ep_num)) in have_episodes:
+        
+    tvdbshow = metadata.tvdb_show(tvdbid)
+    if tvdbshow:
+        for season in tvdbshow.get('airedSeasons', []):
+            if season == '0':
                 continue
-            create_episode(ids, name, season, ep_num, tag)
-        else:
-            continue
-        # Found unaired episodes, save the future air date to recheck
-        # on. If there is none rely on updates.
-        if air_date:
-            future_check(tvdbid, air_date)
-        break
+            
+            tvdbseason = metadata.tvdb_season(tvdbid, season)
+            if tvdbseason:
+                for episode in tvdbseason:
+                    ep_num = episode['airedEpisodeNumber']
+                    if 'firstAired' in episode:
+                        first_aired = episode.get('firstAired', None)
+                        if first_aired:
+                            air_date = metadata.tvdb_airdate_epoch(first_aired) 
+                            if air_date > time.time():
+                                break
+                        else:
+                            air_date = None
+                            break
+                    else:
+                        air_date = None
+                        break
+                    if (int(season), int(ep_num)) in have_episodes:
+                        continue
+                    create_episode(ids, name, season, ep_num, tag)
+                else:
+                    continue
+                # Found unaired episodes, save the future air date to recheck
+                # on. If there is none rely on updates.
+                if air_date:
+                    future_check(tvdbid, air_date)
+                break
     
-    return True
+        return True
 
 
 @router.route('/library/add/episode')

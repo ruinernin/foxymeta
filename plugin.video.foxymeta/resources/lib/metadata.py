@@ -155,7 +155,12 @@ def trakt_list(user, list_id, _type, items=True):
 @router.memcache
 def tvdb_show(tvdb_seriesid):
     path = 'series/{}'.format(tvdb_seriesid)
-    result = tvdb.get(path)['data']
+    
+    try:
+        result = tvdb.get(path)['data']
+    except KeyError:
+        return []
+        
     path = 'series/{}/episodes/summary'.format(tvdb_seriesid)
     result.update(tvdb.get(path)['data'])
     return result
