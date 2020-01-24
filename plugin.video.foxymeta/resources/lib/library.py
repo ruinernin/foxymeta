@@ -1,10 +1,7 @@
-import errno
 import json
 import os
-import re
 import shutil
 import time
-import unicodedata
 from xml.dom import minidom
 from xml.etree import ElementTree
 
@@ -14,27 +11,8 @@ import xbmcgui
 from . import player
 from . import jsonrpc
 from . import metadata
+from . import utils
 from .router import router
-
-
-def mkdir(path):
-    try:
-        os.makedirs(path)
-    except OSError as err:
-        if err.errno == errno.EEXIST:
-            pass
-        else:
-            raise
-    else:
-        return True
-
-
-def get_valid_filename(filename):
-    """Returns normalized ASCII filename."""
-    ascii_name = unicodedata.normalize('NFKD', filename).encode('ascii',
-                                                                'ignore')
-    ascii_name = ascii_name.replace(' ', '_')
-    return re.sub(r'[^\w.-]', '', ascii_name)
 
 
 def clean_library(_type):
@@ -67,26 +45,6 @@ def add_sources():
             updated = True
     if updated:
         tree.write(sources)
-
-
-def library_imdbids():
-    """Return a list of movie imdbids existing in library."""
-    result = jsonrpc.get_movies(properties=['imdbnumber'])
-    return [movie['imdbnumber'] for movie in result.get('movies', list())]
-
-
-def library_shows_tvdbid():
-    """Return a list of shows in library mapped by tvdbid to library id."""
-    result = jsonrpc.get_shows(properties=['uniqueid'])
-    return {int(show['uniqueid']['tvdb']): show['tvshowid']
-            for show in result.get('tvshows', list()) if 'tvdb' in show['uniqueid']}
-
-
-def library_episodes(tvshowid):
-    """Return a list of tuples of episodes that exist for tvshowid."""
-    result = jsonrpc.get_episodes(tvshowid, properties=['episode', 'season'])
-    return [(episode['season'], episode['episode'])
-            for episode in result['episodes']]
 
 
 def create_nfo(item, library_tag='', type=''):
@@ -225,7 +183,7 @@ def create_movie(movie, tag=''):
     imdbid = ids['imdb']
         
     movie_dir = '{}/Library/Movies/{}'.format(router.addon_data_dir, imdbid)
-    if not mkdir(movie_dir):
+    if not utils.mkdir(movie_dir):
         return
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
         nfo.write(create_nfo(movie, tag, 'movie').encode('utf-8'))
@@ -247,7 +205,7 @@ def create_show(show, tag=''):
     tvdbid = ids['tvdb']
     
     show_dir = '{}/Library/TV/{}'.format(router.addon_data_dir, tvdbid)
-    if not mkdir(show_dir):
+    if not utils.mkdir(show_dir):
         return
     with open('{}/tvshow.nfo'.format(show_dir), 'w') as nfo:
         nfo.write(create_nfo(show, tag, 'show').encode('utf-8'))
@@ -290,8 +248,10 @@ def create_episode(ids, name, season, episode, tag=''):
     season_dir = '{}/Library/TV/{}/Season {}'.format(router.addon_data_dir,
                                                      tvdbid,
                                                      season)
-    mkdir(season_dir)
-    filename = get_valid_filename('{} - S{:02d}E{:02d}.strm'.format(name,
+    if not utils.mkdir(season_dir):
+        return
+        
+    filename = utils.get_valid_filename('{} - S{:02d}E{:02d}.strm'.format(name,
                                                                     int(season),
                                                                     int(episode)))
     ep_file = '{}/{}'.format(season_dir, filename)
@@ -370,7 +330,7 @@ def sync_movie_collection(refresh=False):
         if refresh:
             clean_library('Movies')
         movies = metadata.trakt_collection(_type='movies')
-        in_library = library_imdbids()
+        in_library = jsonrpc.library_imdbids()
         for i, movie in enumerate(movies):
             imdbid = movie['movie']['ids']['imdb']
             if imdbid in in_library:
@@ -395,13 +355,13 @@ def sync_movie_lists(refresh=False):
     try:
     if refresh:
         clean_library('Movies')
-    
-    chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
-    
-    in_library = library_imdbids()
-    
-    for i, chosen in enumerate(chosen_slugs):
-        slug, user = chosen.split('.')
+        
+        chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists').split(',')
+        
+        in_library = jsonrpc.library_imdbids()
+        
+        for i, chosen in enumerate(chosen_slugs):
+            slug, user = chosen.split('.')
         list = metadata.trakt_list(user, slug, 'movies')
         for movie in list:
             imdbid = movie['movie']['ids']['imdb']
@@ -426,13 +386,13 @@ def sync_movie_watchlist(refresh=False):
     progress = xbmcgui.DialogProgressBG()
     progress.create('Adding Watchlist Movies to Foxy Library')
     try:
-    if refresh:
-        clean_library('Movies')
-    movies = metadata.trakt_watchlist(_type='movies')
-    in_library = library_imdbids()
-    for i, movie in enumerate(movies):
-        imdbid = movie['movie']['ids']['imdb']
-        if imdbid in in_library:
+        if refresh:
+            clean_library('Movies')
+        movies = metadata.trakt_watchlist(_type='movies')
+        in_library = jsonrpc.library_imdbids()
+        for i, movie in enumerate(movies):
+            imdbid = movie['movie']['ids']['imdb']
+            if imdbid in in_library:
             continue
         create_movie(movie, 'watchlist')
         if i % 10 == 0:
@@ -485,7 +445,7 @@ def sync_show_collection(refresh=False):
             else:
                 refresh = True
         shows = metadata.trakt_collection(_type='shows')
-        in_library = library_shows_tvdbid()
+        in_library = jsonrpc.library_shows_tvdbid()
         for i, show in enumerate(shows):
             tvdbid = show['show']['ids']['tvdb']
             name = show['show']['title']
@@ -524,11 +484,11 @@ def sync_tv_lists(refresh=False):
     
         chosen_slugs = router.addon.getSettingString('library.sync.chosen_lists')
                                    .split(',')
-    
-    in_library = library_shows_tvdbid()
-    
-    for i, chosen in enumerate(chosen_slugs):
-        slug, user = chosen.split('.')
+        
+        in_library = jsonrpc.library_shows_tvdbid()
+        
+        for i, chosen in enumerate(chosen_slugs):
+            slug, user = chosen.split('.')
         list = metadata.trakt_list(user, slug, 'shows')
         for show in list:
             ids = show['show']['ids']
@@ -566,11 +526,11 @@ def sync_show_watchlist(refresh=False):
             else:
                 refresh = True
                 
-    shows = metadata.trakt_watchlist(_type='shows')
-    in_library = library_shows_tvdbid()
-    for i, show in enumerate(shows):
-        ids = show['show']['ids']
-        tvdbid = ids['tvdb']
+        shows = metadata.trakt_watchlist(_type='shows')
+        in_library = jsonrpc.library_shows_tvdbid()
+        for i, show in enumerate(shows):
+            ids = show['show']['ids']
+            tvdbid = ids['tvdb']
         name = show['show']['title']
         create_show(show, 'watchlist')
         progress.update(int((float(i) / len(shows)) * 100))

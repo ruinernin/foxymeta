@@ -95,6 +95,26 @@ def movie_library_id(title):
     if result['limits']['total'] != 1:
         return None
     return result['movies'][0]['movieid']
+    
+    
+def library_imdbids():
+    """Return a list of movie imdbids existing in library."""
+    result = get_movies(properties=['imdbnumber'])
+    return [movie['imdbnumber'] for movie in result.get('movies', list())]
+
+
+def library_shows_tvdbid():
+    """Return a list of shows in library mapped by tvdbid to library id."""
+    result = get_shows(properties=['uniqueid'])
+    return {int(show['uniqueid']['tvdb']): show['tvshowid']
+            for show in result.get('tvshows', list()) if 'tvdb' in show['uniqueid']}
+
+
+def library_episodes(tvshowid):
+    """Return a list of tuples of episodes that exist for tvshowid."""
+    result = get_episodes(tvshowid, properties=['episode', 'season'])
+    return [(episode['season'], episode['episode'])
+            for episode in result['episodes']]
 
 
 def set_episode_runtime(episodeid, seconds):
