@@ -5,6 +5,11 @@
         <import addon="script.module.requests" version="2.22.0"/>
     </requires>
     
+    <extension point="xbmc.python.pluginsource" library="addon.py">
+        <provides>video</provides>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
+    </extension>
+    
     <extension point="xbmc.service" library="service.py" />
     
     <extension point="kodi.context.item">
@@ -14,10 +19,5 @@
 				<visible>String.StartsWith(ListItem.Path, plugin://plugin.video.foxymeta/) + [String.IsEqual(ListItem.DBType, movie) | String.IsEqual(ListItem.DBType, tvshow)]</visible>
 			</item>
         </menu>
-    </extension>
-    
-    <extension point="xbmc.python.pluginsource" library="addon.py">
-        <provides>video</provides>
-        <reuselanguageinvoker>true</reuselanguageinvoker>
     </extension>
 </addon>
