@@ -29,6 +29,11 @@ def add_sources():
     sources = xbmc.translatePath('special://userdata/sources.xml')
     tv_lib = router.addon_data_dir + '/Library/TV/'
     movie_lib = router.addon_data_dir + '/Library/Movies/'
+    if not os.path.exists(sources):
+        return
+    
+    utils.mkdir(xbmc.translatePath(tv_lib))
+    utils.mkdir(xbmc.translatePath(movie_lib))
     tree = ElementTree.parse(sources)
     root = tree.getroot()
     video = root.find('video')
@@ -506,8 +511,7 @@ def sync_tv_lists(refresh=False):
                     if tvdbid not in updates:
                         continue
                 create_show(show, in_library, slug)
-                create_trakt_playlist(user, slug, 'shows')
-                create_trakt_playlist(user, slug, 'episodes')
+            create_trakt_playlist(user, slug, 'shows')
             progress.update(int((float(i) / len(chosen_slugs)) * 100))
     finally:
         progress.close()
