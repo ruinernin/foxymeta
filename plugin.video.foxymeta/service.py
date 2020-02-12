@@ -1,6 +1,7 @@
 import random
 
 import xbmc
+import xbmcgui
 
 from resources.lib.player import FoxyPlayer
 from resources.lib import library
@@ -11,6 +12,9 @@ def main():
     monitor = xbmc.Monitor()
     library.add_sources()
     player = FoxyPlayer()
+    
+    if router.addon.getSettingBool('context.foxymeta'):
+        xbmcgui.Window(10000).setProperty('context.foxymeta', 'True')    
         
     while not monitor.abortRequested():
         if router.addon.getSettingString('trakt.access_token'):

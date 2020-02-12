@@ -16,7 +16,7 @@
         <menu id="kodi.core.main">
 			<item library="context.py">
 				<label>Add To FoxyMeta Library</label>
-				<visible>String.StartsWith(ListItem.Path, plugin://plugin.video.foxymeta/) + [String.IsEqual(ListItem.DBType, movie) | String.IsEqual(ListItem.DBType, tvshow)]</visible>
+				<visible>String.StartsWith(ListItem.Path, plugin://plugin.video.foxymeta/) + [String.IsEqual(ListItem.DBType, movie) | String.IsEqual(ListItem.DBType, tvshow)] + !String.IsEmpty(Window(Home).Property(context.foxymeta))</visible>
 			</item>
         </menu>
     </extension>
