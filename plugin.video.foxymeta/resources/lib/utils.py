@@ -6,6 +6,8 @@ import re
 import sys
 import unicodedata
 
+from xml.dom import minidom
+
 
 def mkdir(path):
     if os.path.exists(path):
@@ -34,6 +36,10 @@ def get_valid_filename(filename):
         ascii_name = ascii_name.replace(' ', '_')
         
     return re.sub(r'[^\w.-]', '', ascii_name)
+    
+    
+def prettify_xml(xml):
+    return minidom.parseString(xml).toprettyxml(indent='    ')
     
     
 def log(msg, level=xbmc.LOGDEBUG):

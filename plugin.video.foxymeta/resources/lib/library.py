@@ -98,8 +98,8 @@ def create_nfo(item, library_tag='', type=''):
                 'trailer', 'status']:
         tag_node = ElementTree.SubElement(root, tag)
         tag_node.text = u'{}'.format(item.get(tag, ''))
-        
-    for genre in item['genres']:
+    
+    for genre in item.get('genres', []):
         genre_node = ElementTree.SubElement(root, 'genre')
         genre_node.text = u'{}'.format(genre.capitalize())
         
@@ -153,7 +153,10 @@ def create_trakt_playlist(user, slug, type):
     xml = ElementTree.tostring(playlist_root, 'utf-8')
     new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
     
-    with open(os.path.join(playlist_path, '{}.xsp'.format(info['name'])), 'w') as xsp:
+    filename = utils.get_valid_filename(os.path.join(playlist_path,
+                                                     '{}.xsp'.format(info['name'])))
+    
+    with open(filename, 'w') as xsp:
         xsp.write(new_xml)
         
         
@@ -274,7 +277,7 @@ def create_episode(ids, name, season, episode, tag=''):
     if not utils.mkdir(season_dir):
         return
         
-    filename = utils.get_valid_filename('{} - S{:02d}E{:02d}.strm'.format(name,
+    filename = utils.get_valid_filename(u'{} - S{:02d}E{:02d}.strm'.format(name,
                                                                     int(season),
                                                                     int(episode)))
     ep_file = '{}/{}'.format(season_dir, filename)
@@ -352,7 +355,7 @@ def sync_movie_collection(refresh=False):
     try:
         if refresh:
             clean_library('Movies')
-        movies = metadata.trakt_collection(_type='movies')
+        movies = metadata.trakt_collection(_type='movies', extended=True)
         in_library = jsonrpc.library_imdbids()
         for i, movie in enumerate(movies):
             imdbid = movie['movie']['ids']['imdb']
@@ -406,7 +409,7 @@ def sync_movie_watchlist(refresh=False):
     try:
         if refresh:
             clean_library('Movies')
-        movies = metadata.trakt_watchlist(_type='movies')
+        movies = metadata.trakt_watchlist(_type='movies', extended=True)
         in_library = jsonrpc.library_imdbids()
         for i, movie in enumerate(movies):
             imdbid = movie['movie']['ids']['imdb']
@@ -460,7 +463,7 @@ def sync_show_collection(refresh=False):
                 updates.extend(aired_since())
             else:
                 refresh = True
-        shows = metadata.trakt_collection(_type='shows')
+        shows = metadata.trakt_collection(_type='shows', extended=True)
         in_library = jsonrpc.library_shows_tvdbid()
         for i, show in enumerate(shows):
             tvdbid = show['show']['ids']['tvdb']
@@ -541,7 +544,7 @@ def sync_show_watchlist(refresh=False):
             else:
                 refresh = True
                 
-        shows = metadata.trakt_watchlist(_type='shows')
+        shows = metadata.trakt_watchlist(_type='shows', extended=True)
         in_library = jsonrpc.library_shows_tvdbid()
         for i, show in enumerate(shows):
             ids = show['show']['ids']

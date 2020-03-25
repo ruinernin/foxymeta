@@ -38,12 +38,6 @@ def root():
     xbmcplugin.endOfDirectory(router.handle)
 
 
-@router.route('/library')
-def open_library():
-    directory = router.addon_data_dir + '/Library'
-    xbmc.executebuiltin('ActivateWindow(10025,'+directory+', return)')
-
-
 @router.route('/auth_trakt')
 def authenticate_trakt():
     init = trakt.authenticate()
