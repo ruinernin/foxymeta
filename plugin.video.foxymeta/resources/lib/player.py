@@ -14,7 +14,9 @@ from .router import router
 
 
 NATIVE = ('foxystreams',)
+FOXYSTREAMS_BASEURL = 'plugin://plugin.video.foxystreams/'
 SEREN_BASEURL = 'plugin://plugin.video.seren/'
+TMDBHELPER_BASEURL = 'plugin://plugin.video.themoviedb.helper/'
 
 
 def seren_movie_uri(traktid):
@@ -26,35 +28,87 @@ def seren_movie_uri(traktid):
         'action': 'getSources',
         'actionArgs': json.dumps(action_args),
     }
-    uri = SEREN_BASEURL + '?' + urllib.urlencode(params)
-    return uri
+    
+    return SEREN_BASEURL + '?' + urllib.urlencode(params)
 
+
+def seren_tv_uri(traktid, season, episode):
+    action_args = {
+        'item_type': 'episode',
+        'trakt_id': traktid,
+        'season': season,
+        'episode': episode,
+    }
+    params = {
+        'action': 'getSources',
+        'actionArgs': json.dumps(action_args),
+    }
+    
+    return SEREN_BASEURL + '?' + urllib.urlencode(params)
 
 def foxy_movie_uri(imdbid):
-    base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
-    return base_uri + urllib.urlencode({'imdb': imdbid})
+    return FOXYSTREAMS_BASEURL + 'play/movie?' + urllib.urlencode({'imdb': imdbid})
 
 
 def foxy_tv_uri(_id, season, episode):
-    base_uri = 'plugin://plugin.video.foxystreams/play/episode?'
     params = {
         'id': _id,
         'season': season,
         'episode': episode,
     }
-    return base_uri + urllib.urlencode(params)
+    return FOXYSTREAMS_BASEURL + 'play/episode?' + urllib.urlencode(params)
+
+
+def tmdbhelper_movie_uri(tmdbid):
+    params = {
+        'info': 'play',
+        'type': 'movie',
+        'tmdb_id': tmdbid,
+    }
+
+    return TMDBHELPER_BASEURL + urllib.urlencode(params)
+
+
+def tmdbhelper_tv_uri(_id, season, episode):
+    params = {
+        'info': 'play',
+        'type': 'episode',
+        'tmdb_id': tmdbid,
+        'season': season,
+        'episode': episode,
+    }
+
+    return TMDBHELPER_BASEURL + urllib.urlencode(params)
 
 
 def movie_uri(ids, src='trakt'):
     if src == 'tmdb':
         ids = metadata.tmdbid_to_traktids(ids)
     player = router.addon.getSetting('player.movies.external').lower()
-    if player == 'seren':
-        return seren_movie_uri(ids['trakt'])
-    elif player == 'foxystreams':
+    if player == 'foxystreams':
         return foxy_movie_uri(ids['imdb'])
+    elif player == 'seren':
+        return seren_movie_uri(ids['trakt'])
+    elif player == 'tmdbhelper':
+        return tmdbhelper_movie_uri(ids['tmdb'])
+    
+        
     return None
+    
 
+def tv_uri(ids, season, episode, src='trakt'):
+    if src == 'tmdb':
+        ids = metadata.tmdbid_to_traktids(ids)
+    player = router.addon.getSetting('player.tv.external').lower()
+    if player == 'foxystreams':
+        return foxy_tv_uri(ids['imdb'], season, episode)
+    elif player == 'seren':
+        return seren_tv_uri(ids['trakt'], season, episode)
+    elif player == 'tmdbhelper':
+        return tmdbhelper_tv_uri(ids['tmdb'], season, episode)
+
+    return None
+    
 
 @router.route('/play/movie')
 def play_movie(get_metadata=True, **ids):
@@ -75,7 +129,7 @@ def play_movie(get_metadata=True, **ids):
 @router.route('/play/episode')
 def play_episode(_id=None, season=None, episode=None):
     li = xbmcgui.ListItem()
-    li.setPath(foxy_tv_uri(_id, season, episode))
+    li.setPath(tv_uri(_id, season, episode))
     xbmcplugin.setResolvedUrl(router.handle, True, li)
     xbmcgui.Window(10000).setProperty('foxymeta.nativeplay', 'True')
 

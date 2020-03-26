@@ -11,7 +11,8 @@
         <setting type="number" id="trakt.expires" subsetting="true" label="Trakt Token Expiration" enable="false" default="0" visible="eq(-3,True)" />
     </category>
     <category label="Players">
-        <setting type="labelenum" id="player.movies.external" label="External Movie Player" values="FoxyStreams|Seren" default="FoxyStreams" />
+        <setting type="labelenum" id="player.movies.external" label="External Movie Player" values="FoxyStreams|Seren|TMDbHelper" default="FoxyStreams" />
+        <setting type="labelenum" id="player.tv.external" label="External TV Player" values="FoxyStreams|Seren|TMDbHelper" default="FoxyStreams" />
     </category>
     <category label="Library">
         <setting type="lsep" label="Automatic Sync of Trakt Collections" />
