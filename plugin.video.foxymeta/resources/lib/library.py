@@ -47,9 +47,14 @@ def add_sources():
             path = ElementTree.SubElement(source, 'path',
                                                     pathversion='1')
             path.text = lib
+            allowsharing = ElementTree.SubElement(source, 'allowsharing')
+            allowsharing.text = 'true'
             updated = True
     if updated:
-        tree.write(sources)
+        xml = ElementTree.tostring(root)
+        new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
+        with open(sources, 'w') as f:
+            f.write(new_xml.encode('utf-8'))
 
 
 def create_nfo(item, library_tag='', type=''):
@@ -134,7 +139,7 @@ def create_trakt_playlist(user, slug, type):
         info.update({'sort_by': sort_by_translation[_list['sort_by']]})
     
     playlist_root = ElementTree.Element('smartplaylist')
-    playlist_root.set('type', info['type'])
+    playlist_root.set('type', 'movies' if info['type'] == 'movies' else 'tvshows')
     
     name_node = ElementTree.SubElement(playlist_root, 'name')
     name_node.text = '{} by {}'.format(info['name'], info['username'])
@@ -153,10 +158,9 @@ def create_trakt_playlist(user, slug, type):
     xml = ElementTree.tostring(playlist_root, 'utf-8')
     new_xml = minidom.parseString(xml).toprettyxml(indent='    ')
     
-    filename = utils.get_valid_filename(os.path.join(playlist_path,
-                                                     '{}.xsp'.format(info['name'])))
+    filename = utils.get_valid_filename('{}.xsp'.format(info['name']))
     
-    with open(filename, 'w') as xsp:
+    with open(os.path.join(playlist_path, filename), 'w') as xsp:
         xsp.write(new_xml)
         
         
