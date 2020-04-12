@@ -158,6 +158,8 @@ def tvdb_updates(epoch):
 
 
 def tvdb_airdate_epoch(airdate):
+    if not airdate:
+        return 0
     epoch = calendar.timegm(
         datetime.datetime.strptime(
             airdate,
