@@ -65,9 +65,12 @@ def create_movie(ids):
     with open('{}/{}.nfo'.format(movie_dir, imdbid), 'w') as nfo:
         nfo.write(imdb_nfo(imdbid))
     with open('{}/{}.strm'.format(movie_dir, imdbid), 'w') as strm:
-        strm.write(router.build_url(player.play_movie,
-                                    get_metadata=False,
-                                    **ids))
+        if router.addon.getSettingBool('library.sync.foxystreams.direct'):
+            strm.write(player.foxy_movie_uri(imdbid))
+        else:
+            strm.write(router.build_url(player.play_movie,
+                                        get_metadata=False,
+                                        **ids))
 
 
 def clean_library(_type):
@@ -100,10 +103,13 @@ def create_episode(tvdbid, name, season, episode):
     if os.path.exists(ep_file):
         return
     with open(ep_file, 'w') as strm:
-        strm.write(router.build_url(player.play_episode,
-                                    _id=tvdbid,
-                                    season=season,
-                                    episode=episode))
+        if router.addon.getSettingBool('library.sync.foxystreams.direct'):
+            strm.write(player.foxy_tv_uri(tvdbid, season, episode))
+        else:
+            strm.write(router.build_url(player.play_episode,
+                                        _id=tvdbid,
+                                        season=season,
+                                        episode=episode))
 
 
 def library_imdbids():

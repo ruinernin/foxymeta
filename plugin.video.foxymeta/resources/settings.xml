@@ -14,6 +14,7 @@
         <setting type="labelenum" id="player.movies.external" label="External Movie Player" values="FoxyStreams|Seren" default="FoxyStreams" />
     </category>
     <category label="Library">
+        <setting type="bool" id="library.sync.foxystreams.direct" label="Library items call FoxyStreams directly" default="true" />
         <setting type="lsep" label="Automatic Sync of Trakt Collections" />
         <setting type="bool" id="library.sync.traktcollection.movies" label="Movies" default="false" />
         <setting type="bool" id="library.sync.traktcollection.tv" label="TV Shows" default="false" />
