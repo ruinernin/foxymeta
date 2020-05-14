@@ -16,6 +16,7 @@ TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
 
 @router.route('/tv')
 def root():
+    xbmcplugin.setContent(router.handle, 'files')
     router.gui_dirlist([(search, 'Search'),
                         (popular, 'Popular'),
                         (trending, 'Trending'),

@@ -9,17 +9,12 @@ import json
 import os
 import os.path
 import random
-import sys
 import time
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-
-
-
-ADDON_URL = sys.argv[0]
 
 
 class Router(object):
@@ -38,16 +33,13 @@ class Router(object):
         # store cache on (funname, hash(args + sorted_kwargs))
         self._cache = {}
         self.cache_keys_updated = set()
+        self.handle = None
 
     @staticmethod
     def cache_hash(*args, **kwargs):
         h_list = list(args)
         h_list.extend(sorted(kwargs.items()))
         return hashlib.md5(str(h_list)).hexdigest()
-
-    @property
-    def handle(self):
-        return int(sys.argv[1])
 
     def memcache(self, func):
         cache = {}
@@ -133,8 +125,9 @@ class Router(object):
             return func
         return wrapper
 
-    def run(self):
-        full_path = ADDON_URL + sys.argv[2]
+    def run(self, url, handle, path):
+        self.handle = int(handle)
+        full_path = url + path
         parsed = urlparse(full_path)
         path = parsed.path.lstrip('/')
         kwargs = dict(parse_qsl(parsed.query))

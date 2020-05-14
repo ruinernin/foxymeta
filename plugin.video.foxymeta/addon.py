@@ -17,6 +17,8 @@ TRAKT_AUTHED = bool(router.addon.getSettingString('trakt.access_token'))
 
 @router.route('/')
 def root():
+    library.add_sources()
+    xbmcplugin.setContent(router.handle, 'files')
     xbmcplugin.addDirectoryItem(router.handle,
                                 router.build_url(movies.root),
                                 xbmcgui.ListItem('Movies'),
@@ -103,7 +105,5 @@ def save_trakt_auth(response):
     router.addon.setSettingString('trakt.username', username)
 
 
-if __name__ == '__main__':
-    xbmcplugin.setContent(router.handle, 'movies')
-    library.add_sources()
-    router.run()
+def run(url, handle, path):
+    router.run(url, handle, path)
