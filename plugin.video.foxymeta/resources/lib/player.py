@@ -1,6 +1,6 @@
 import datetime
 import json
-import urllib
+import urllib.parse
 
 import xbmc
 import xbmcgui
@@ -26,13 +26,13 @@ def seren_movie_uri(traktid):
         'action': 'getSources',
         'actionArgs': json.dumps(action_args),
     }
-    uri = SEREN_BASEURL + '?' + urllib.urlencode(params)
+    uri = SEREN_BASEURL + '?' + urllib.parse.urlencode(params)
     return uri
 
 
 def foxy_movie_uri(imdbid):
     base_uri = 'plugin://plugin.video.foxystreams/play/movie?'
-    return base_uri + urllib.urlencode({'imdb': imdbid})
+    return base_uri + urllib.parse.urlencode({'imdb': imdbid})
 
 
 def foxy_tv_uri(_id, season, episode):
@@ -42,7 +42,7 @@ def foxy_tv_uri(_id, season, episode):
         'season': season,
         'episode': episode,
     }
-    return base_uri + urllib.urlencode(params)
+    return base_uri + urllib.parse.urlencode(params)
 
 
 def movie_uri(ids, src='trakt'):

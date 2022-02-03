@@ -1,6 +1,4 @@
-import functools
 import time
-import urllib
 
 import xbmc
 import xbmcgui
